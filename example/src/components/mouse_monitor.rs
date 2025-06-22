@@ -2,7 +2,7 @@ use leptos::{logging::log, prelude::*};
 use leptos_use::{UseWindowSizeReturn, use_window_size};
 use web_sys::wasm_bindgen::JsCast;
 
-use prelude::*;
+use leptos_verlet::prelude::*;
 
 #[component]
 pub fn MouseMonitor(active_modifier: RwSignal<ModificationTarget>) -> impl IntoView {

@@ -3,7 +3,7 @@ use leptos_use::{
     UseDraggableOptions, UseDraggableReturn, core::Position, use_draggable_with_options,
 };
 
-use prelude::*;
+use leptos_verlet::prelude::*;
 
 #[component]
 pub fn InfoModal(active_modifier: RwSignal<ModificationTarget>) -> impl IntoView {

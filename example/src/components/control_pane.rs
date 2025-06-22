@@ -1,7 +1,7 @@
 use leptos::prelude::*;
 use leptos_icons::Icon;
 
-use prelude::*;
+use leptos_verlet::prelude::*;
 
 #[component]
 pub fn ControlPane(active_modifier: RwSignal<ModificationTarget>) -> impl IntoView {

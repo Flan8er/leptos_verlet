@@ -5,7 +5,7 @@ use crate::components::{
     mouse_monitor::MouseMonitor,
 };
 
-use prelude::*;
+use leptos_verlet::prelude::*;
 
 #[component]
 pub fn App() -> impl IntoView {

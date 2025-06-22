@@ -4,7 +4,7 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
-prelude = { path = "../prelude" }
+leptos_verlet = { path = "../leptos_verlet" }
 
 console_error_panic_hook.workspace = true
 leptos.workspace = true
