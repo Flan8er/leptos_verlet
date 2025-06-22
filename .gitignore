@@ -1,5 +1,6 @@
 target
 example/dist
 example/node_modules
+.cargo
 
 .DS_Store
