@@ -1,0 +1,99 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+    :root {
+        /* Main green background */
+        --background: 219 15% 18%;
+        /* Secondary white background */
+        --secondary-background: 180, 8%, 90%;
+        /* Pure white background */
+        --tertiary-background: 0 0% 100%;
+        /* Text for use on green background */
+        --primary-text: 0 0% 100%;
+        /* Muted text for use on green background */
+        --primary-text-muted: 188 19% 61%;
+        /* Text for use on white background */
+        --secondary-text: 188 78% 13%;
+        /* Yellow accent */
+        --accent: 77 100% 49%;
+        /* Subtle change on green background for accent ontop of primary background */
+        --foreground: 188 89% 11%;
+        /* Border for elements in main background */
+        --border: 219 15% 22%;
+        /* Grayish color */
+        --card: 231 25% 16%;
+        --card-active: 231 25% 25%;
+    }
+}
+
+@layer base {
+    * {
+        margin: 0;
+        padding: 0;
+        @apply border-border;
+    }
+    body {
+        @apply bg-background text-primary-text font-light; /* default was font-normal → 400 */
+        font-feature-settings:
+            "rlig" 1,
+            "calt" 1;
+        height: 100dvh;
+    }
+
+    h1 {
+        @apply font-medium;
+        font-size: 36px; /* Default */
+    }
+
+    h2 {
+        @apply font-normal;
+        font-size: 24px;
+    }
+
+    h3 {
+        @apply font-light;
+        font-size: 14px;
+    }
+
+    p,
+    li,
+    span {
+        font-size: 12px;
+        line-height: 1.5;
+    }
+
+    button {
+        font-size: 12px;
+        padding: 0.5rem 1rem;
+    }
+
+    input,
+    textarea {
+        font-size: 12px;
+        padding: 0.5rem;
+    }
+
+    /* Change the color of user-select properties */
+    ::selection {
+        background-color: hsl(var(--accent));
+        color: hsl(var(--secondary-text));
+    }
+    ::-moz-selection {
+        background-color: hsl(var(--accent));
+        color: hsl(var(--primary-text));
+    }
+}
+
+@layer utilities {
+    canvas {
+        @apply border-none outline-none;
+    }
+
+    .glass {
+        background: rgba(255, 255, 255, 0);
+        backdrop-filter: blur(5px);
+        -webkit-backdrop-filter: blur(5px);
+    }
+}

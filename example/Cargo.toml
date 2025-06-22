@@ -1,0 +1,18 @@
+[package]
+name = "example"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+prelude = { path = "../prelude" }
+
+console_error_panic_hook.workspace = true
+leptos.workspace = true
+leptos_meta.workspace = true
+leptos_router.workspace = true
+
+leptos-bevy-canvas.workspace = true
+leptos-use.workspace = true
+leptos_icons.workspace = true
+icondata.workspace = true
+web-sys.workspace = true

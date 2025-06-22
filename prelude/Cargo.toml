@@ -1,0 +1,13 @@
+[package]
+name = "prelude"
+version = "1.0.0"
+edition = "2024"
+
+[dependencies]
+getrandom.workspace = true
+bevy.workspace = true
+leptos-bevy-canvas.workspace = true
+bevy_panorbit_camera.workspace = true
+
+once_cell.workspace = true
+rand.workspace = true
