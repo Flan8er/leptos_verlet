@@ -1,5 +1,6 @@
 use bevy::prelude::*;
 use leptos::prelude::*;
+use leptos_bevy_canvas::prelude::*;
 use leptos_use::{UseElementSizeReturn, use_element_size};
 
 mod core;
@@ -12,7 +13,7 @@ pub use interaction::{
     state::SimulationPlayStateRequest,
     window_bounds::LeptosResize,
 };
-pub use leptos_bevy_canvas::prelude::*;
+pub use leptos_bevy_canvas::prelude::{LeptosChannelEventSender, LeptosEventSender};
 
 use crate::{
     core::{
