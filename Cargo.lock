@@ -2226,7 +2226,7 @@ dependencies = [
  "leptos_icons",
  "leptos_meta",
  "leptos_router",
- "prelude",
+ "leptos_verlet",
  "web-sys",
 ]
 
@@ -3539,6 +3539,20 @@ dependencies = [
 ]
 
 [[package]]
+name = "leptos_verlet"
+version = "1.0.0"
+dependencies = [
+ "bevy",
+ "bevy_panorbit_camera",
+ "getrandom 0.3.3",
+ "leptos",
+ "leptos-bevy-canvas",
+ "leptos-use",
+ "once_cell",
+ "rand",
+]
+
+[[package]]
 name = "lewton"
 version = "0.10.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -4425,20 +4439,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "85eae3c4ed2f50dcfe72643da4befc30deadb458a9b590d720cde2f2b1e97da9"
 dependencies = [
  "zerocopy",
-]
-
-[[package]]
-name = "prelude"
-version = "1.0.0"
-dependencies = [
- "bevy",
- "bevy_panorbit_camera",
- "getrandom 0.3.3",
- "leptos",
- "leptos-bevy-canvas",
- "leptos-use",
- "once_cell",
- "rand",
 ]
 
 [[package]]

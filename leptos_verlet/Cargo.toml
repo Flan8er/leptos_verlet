@@ -1,5 +1,5 @@
 [package]
-name = "prelude"
+name = "leptos_verlet"
 version = "1.0.0"
 edition = "2024"
 

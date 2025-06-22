@@ -3,24 +3,13 @@ use leptos::prelude::*;
 use leptos_bevy_canvas::prelude::*;
 use leptos_use::{UseElementSizeReturn, use_element_size};
 
-mod core;
-mod interaction;
-mod objects;
-
-// Define the prelude exports
-pub use interaction::{
-    modification::{ModificationTarget, ModifyEventType, RelativeWindowPosition},
-    state::SimulationPlayStateRequest,
-    window_bounds::LeptosResize,
-};
-pub use leptos_bevy_canvas::prelude::{LeptosChannelEventSender, LeptosEventSender};
-
 use crate::{
     core::{
         render::RenderView, schedule::SchedulePlugin, setup::StartSimulation,
         simulation::RunSimulation,
     },
     interaction::state::StatePlugin,
+    prelude::{LeptosResize, ModificationTarget, ModifyEventType, SimulationPlayStateRequest},
 };
 
 #[component]
@@ -107,18 +96,3 @@ fn init_bevy_app(
     .add_plugins(RenderView);
     app
 }
-
-// pub fn add(left: u64, right: u64) -> u64 {
-//     left + right
-// }
-
-// #[cfg(test)]
-// mod tests {
-//     use super::*;
-
-//     #[test]
-//     fn it_works() {
-//         let result = add(2, 2);
-//         assert_eq!(result, 4);
-//     }
-// }

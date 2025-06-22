@@ -1,5 +1,5 @@
 [workspace]
-members = ["example", "prelude"]
+members = ["example", "leptos_verlet"]
 
 [workspace.dependencies]
 console_error_panic_hook = "0.1.7"
