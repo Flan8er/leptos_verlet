@@ -1,7 +1,16 @@
 [package]
 name = "leptos_verlet"
-version = "1.0.0"
-edition = "2024"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+authors = ["Casey Vaughn"]
+license = "MIT"
+repository = "https://github.com/Flan8er/leptos_verlet"
+homepage = "https://github.com/Flan8er/leptos_verlet"
+description = "An engine to perform Verlet simulations in Leptos apps."
+readme = "../README.md"
+keywords.workspace = true
+
 
 [dependencies]
 getrandom.workspace = true

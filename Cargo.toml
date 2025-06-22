@@ -1,5 +1,13 @@
 [workspace]
-members = ["example", "leptos_verlet"]
+resolver = "3"
+members = ["leptos_verlet"]
+exclude = ["examples"]
+
+[workspace.package]
+version = "1.0.0"
+edition = "2024"
+rust-version = "1.85.0"
+keywords = ["leptos", "bevy", "verlet", "simulation", "canvas"]
 
 [workspace.dependencies]
 console_error_panic_hook = "0.1.7"
