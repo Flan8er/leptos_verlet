@@ -1,5 +1,6 @@
 use bevy::prelude::*;
-use leptos_bevy_canvas::prelude::*;
+use leptos::prelude::*;
+use leptos_use::{UseElementSizeReturn, use_element_size};
 
 mod core;
 mod interaction;
@@ -11,6 +12,7 @@ pub use interaction::{
     state::SimulationPlayStateRequest,
     window_bounds::LeptosResize,
 };
+pub use leptos_bevy_canvas::prelude::*;
 
 use crate::{
     core::{
@@ -20,7 +22,57 @@ use crate::{
     interaction::state::StatePlugin,
 };
 
-pub fn init_bevy_app(
+#[component]
+pub fn VerletConfigProvider() -> impl IntoView {
+    let (state_sender, bevy_state_receiver) = event_l2b::<SimulationPlayStateRequest>();
+    let (target_sender, bevy_target_receiver) = event_l2b::<ModificationTarget>();
+    let (event_sender, bevy_event_receiver) = event_l2b::<ModifyEventType>();
+    let (window_sender, bevy_window_receiver) = event_l2b::<LeptosResize>();
+
+    provide_context(state_sender);
+    provide_context(target_sender);
+    provide_context(event_sender);
+    provide_context(window_sender);
+
+    provide_context(bevy_state_receiver);
+    provide_context(bevy_target_receiver);
+    provide_context(bevy_event_receiver);
+    provide_context(bevy_window_receiver);
+
+    view! {
+        <></>
+    }
+}
+
+#[component]
+pub fn VerletCanvas(parent_element: NodeRef<leptos::html::Div>) -> impl IntoView {
+    let state_sender = expect_context::<LeptosEventSender<SimulationPlayStateRequest>>();
+    let target_sender = expect_context::<LeptosEventSender<ModificationTarget>>();
+    let event_sender = expect_context::<LeptosEventSender<ModifyEventType>>();
+    let window_sender = expect_context::<LeptosEventSender<LeptosResize>>();
+
+    let bevy_state_receiver = expect_context::<BevyEventReceiver<SimulationPlayStateRequest>>();
+    let bevy_target_receiver = expect_context::<BevyEventReceiver<ModificationTarget>>();
+    let bevy_event_receiver = expect_context::<BevyEventReceiver<ModifyEventType>>();
+    let bevy_window_receiver = expect_context::<BevyEventReceiver<LeptosResize>>();
+
+    let UseElementSizeReturn { width, height } = use_element_size(parent_element);
+    Effect::new(move |_| {
+        let width = width.get() as f32;
+        let height = height.get() as f32;
+        window_sender.send(LeptosResize { width, height })
+    });
+
+    view! {
+        <BevyCanvas
+            init=move || {
+                init_bevy_app(bevy_state_receiver, bevy_target_receiver, bevy_event_receiver, bevy_window_receiver)
+            }
+        />
+    }
+}
+
+fn init_bevy_app(
     state_receiver: BevyEventReceiver<SimulationPlayStateRequest>,
     target_receiver: BevyEventReceiver<ModificationTarget>,
     event_receiver: BevyEventReceiver<ModifyEventType>,

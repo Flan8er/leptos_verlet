@@ -1,5 +1,4 @@
 use leptos::{logging::log, prelude::*};
-use leptos_bevy_canvas::prelude::*;
 use leptos_use::{UseWindowSizeReturn, use_window_size};
 use web_sys::wasm_bindgen::JsCast;
 

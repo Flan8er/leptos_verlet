@@ -1,5 +1,4 @@
 use leptos::prelude::*;
-use leptos_bevy_canvas::prelude::*;
 use leptos_icons::Icon;
 
 use prelude::*;

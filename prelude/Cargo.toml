@@ -6,6 +6,8 @@ edition = "2024"
 [dependencies]
 getrandom.workspace = true
 bevy.workspace = true
+leptos.workspace = true
+leptos-use.workspace = true
 leptos-bevy-canvas.workspace = true
 bevy_panorbit_camera.workspace = true
 

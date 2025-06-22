@@ -2222,7 +2222,6 @@ dependencies = [
  "console_error_panic_hook",
  "icondata",
  "leptos",
- "leptos-bevy-canvas",
  "leptos-use",
  "leptos_icons",
  "leptos_meta",
@@ -4435,7 +4434,9 @@ dependencies = [
  "bevy",
  "bevy_panorbit_camera",
  "getrandom 0.3.3",
+ "leptos",
  "leptos-bevy-canvas",
+ "leptos-use",
  "once_cell",
  "rand",
 ]
