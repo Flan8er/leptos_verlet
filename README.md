@@ -33,3 +33,9 @@ pub fn App() -> impl IntoView {
     }
 }
 ```
+
+## Compatibility
+
+| Crate version | Compatible Leptos version | Compatible Bevy version |
+| ------------- | ------------------------- | ----------------------- |
+| 1.0           | 0.7                       | 0.15                    |
