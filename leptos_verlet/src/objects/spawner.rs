@@ -34,22 +34,6 @@ impl SpawnedEntity {
 }
 
 pub fn spawner(mesh_network: Vec<SpawnNode>, commands: &mut Commands) {
-    // An square can be defined as:
-    // [
-    // {
-    //  (0, 0, 0), [(0, 1, 0)]
-    // },
-    // {
-    //  (0, 1, 0), [(1, 1, 0), (1, 0, 0)]
-    // },
-    // {
-    //  (1, 1, 0), [(1, 0, 0)]
-    // },
-    // {
-    //  (1, 0, 0), [(0, 0, 0), (0, 1, 0)]
-    // }
-    // ]
-
     // Create a vector to keep track of the spawned points and their locations
     let mut spawned_entities: Vec<SpawnedEntity> = Vec::new();
 

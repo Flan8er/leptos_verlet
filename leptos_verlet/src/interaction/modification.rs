@@ -3,7 +3,7 @@ use bevy::prelude::*;
 use crate::{
     core::parameters::{HALF_CAMERA_HEIGHT, MODIFICATION_RADIUS, Point, Stick},
     interaction::{state::SimulationPlayState, window_bounds::SimulationBounds},
-    objects::{cloth::spawn_cloth, rope::spawn_rope, square::spawn_square},
+    objects::{cloth::spawn_cloth, cube::spawn_cube, rope::spawn_rope, square::spawn_square},
 };
 
 #[derive(Event, Clone, PartialEq)]
@@ -49,6 +49,8 @@ pub enum ModificationTarget {
     SpawnSquare,
     /// Spawn a clock filling available sceen space.
     SpawnCloth,
+    /// Spawn a cube at a selected location.
+    SpawnCube,
     /// Right click on a point to delete it.
     Delete,
     PointInfo,
@@ -141,6 +143,13 @@ pub fn handle_modification_event(
                         &point_material,
                         &stick_material,
                         &bounds,
+                    ),
+                    ModificationTarget::SpawnCube => spawn_cube(
+                        &mut commands,
+                        &mut meshes,
+                        &point_material,
+                        &stick_material,
+                        &event_coords,
                     ),
                     _ => (),
                 }

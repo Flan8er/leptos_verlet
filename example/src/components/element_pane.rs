@@ -64,6 +64,13 @@ pub fn ElementPane(active_modifier: RwSignal<ModificationTarget>) -> impl IntoVi
             active_modifier.set(ModificationTarget::SpawnCloth)
         }
     };
+    let spawn_cube = {
+        let sender = target_sender.clone();
+        move |_| {
+            sender.send(ModificationTarget::SpawnCube).ok();
+            active_modifier.set(ModificationTarget::SpawnCube)
+        }
+    };
     let point_info = {
         let sender = target_sender.clone();
         move |_| {
@@ -78,6 +85,7 @@ pub fn ElementPane(active_modifier: RwSignal<ModificationTarget>) -> impl IntoVi
                 <ElementPaneItem icon=icondata::CgEditBlackPoint on_click=modification_point selected_item=active_modifier this_item=ModificationTarget::Point/>
                 <ElementPaneItem icon=icondata::BsLink45deg on_click=modification_line selected_item=active_modifier this_item=ModificationTarget::Line/>
                 <ElementPaneItem icon=icondata::LuSquareSlash on_click=spawn_square selected_item=active_modifier this_item=ModificationTarget::SpawnSquare/>
+                <ElementPaneItem icon=icondata::TbCube on_click=spawn_cube selected_item=active_modifier this_item=ModificationTarget::SpawnCube/>
                 <ElementPaneItem icon=icondata::MdiTransitConnection on_click=spawn_rope selected_item=active_modifier this_item=ModificationTarget::SpawnRope/>
                 <ElementPaneItem icon=icondata::CgMenuGridO on_click=spawn_cloth selected_item=active_modifier this_item=ModificationTarget::SpawnCloth/>
             </div>
