@@ -9,7 +9,7 @@ use leptos_verlet::prelude::*;
 
 #[component]
 pub fn App() -> impl IntoView {
-    let verlet_container = NodeRef::<Div>::new();
+    let simulation_container = NodeRef::<Div>::new();
 
     let active_modifier: RwSignal<ModificationTarget> = RwSignal::new(ModificationTarget::None);
 
@@ -21,10 +21,10 @@ pub fn App() -> impl IntoView {
             <InfoModal active_modifier/>
 
             <div
-                node_ref=verlet_container
+                node_ref=simulation_container
                 class="w-full h-full relative"
             >
-                <VerletCanvas parent_element=verlet_container/>
+                <VerletCanvas parent_element=simulation_container/>
 
                 <MouseMonitor active_modifier/>
             </div>

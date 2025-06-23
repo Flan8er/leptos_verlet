@@ -18,7 +18,7 @@ pub enum ModifyEventType {
 pub struct RelativeWindowPosition {
     pub x: f32,
     pub y: f32,
-    /// The ratio of window_width / window_height
+    /// The ratio of container_width / container_height
     pub x_to_y: f32,
 }
 impl RelativeWindowPosition {
