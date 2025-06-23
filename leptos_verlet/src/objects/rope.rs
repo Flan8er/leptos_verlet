@@ -1,10 +1,9 @@
-use std::f32::consts::PI;
-
 use bevy::prelude::*;
 
 use crate::{
-    core::parameters::{Point, Stick},
+    core::parameters::Point,
     interaction::window_bounds::SimulationBounds,
+    objects::spawner::{SpawnNode, spawner},
 };
 
 const POINT_SIZE: f32 = 0.025; // m (0.025m == 25mm)
@@ -26,80 +25,65 @@ pub fn spawn_rope(
     let point_mesh = meshes.add(Sphere::default());
     let stick_mesh = meshes.add(Cuboid::default());
 
-    let locked_color = materials.add(StandardMaterial::from(Color::srgb(1., 0., 0.)));
+    // red “locked” material for the root node
+    let locked_material = materials.add(StandardMaterial::from(Color::srgb(1.0, 0.0, 0.0)));
 
-    // Create an initial point locked at some starting position.
-    let mut parent_point = Point::new(position, position, true);
-    let mut parent_point_id = commands
-        .spawn((
-            Mesh3d(point_mesh.clone()),
-            MeshMaterial3d(locked_color),
-            Transform::from_translation(parent_point.position).with_scale(Vec3::splat(POINT_SIZE)),
-            parent_point,
-        ))
-        .id();
+    // how many sticks (and thus how many extra points)
+    let sticks_tot = (ROPE_LENGTH / STICK_LENGTH).floor() as usize;
 
-    // Total number to links should be just enough to **kiss** the floor
-    let sticks_tot = (ROPE_LENGTH / STICK_LENGTH).floor() as u32;
-
-    // Loop through the desired number of sticks
-    // For the requested number of sticks create a point and connect it to the previous parent point
+    // build the chain of point‐positions, respecting bounds of simulation
+    let theta = DROP_ANGLE.to_radians();
+    let mut positions = Vec::with_capacity(sticks_tot + 1);
+    positions.push(position);
     for _ in 0..sticks_tot {
-        // Convert the desired angle into rad
-        let theta = DROP_ANGLE * PI / 180.;
+        let prev = *positions.last().unwrap();
+        let mut next =
+            prev + Vec3::new(-STICK_LENGTH * theta.sin(), STICK_LENGTH * theta.cos(), 0.0);
 
-        // Calculate change in x position in the -X direction
-        let mut point_position =
-            Vec3::new(-STICK_LENGTH * theta.sin(), STICK_LENGTH * theta.cos(), 0.)
-                + parent_point.position;
-        // Constrain point to be within boundary
-        if point_position[0] <= -bounds.width / 2. {
-            let constrained_x = -bounds.width / 2. + 0.001;
-            let diff = constrained_x - point_position[0];
-
-            point_position = Vec3::new(constrained_x, point_position[1] + diff, 0.);
-        } else if point_position[0] >= bounds.width / 2. {
-            let constrained_x = bounds.width / 2. - 0.001;
-            let diff = point_position[0] - constrained_x;
-
-            point_position = Vec3::new(constrained_x, point_position[1] + diff, 0.);
+        // clamp X into [–width/2, +width/2]
+        let half_w = bounds.width / 2.0;
+        if next.x <= -half_w {
+            let cx = -half_w + 0.001;
+            let dy = cx - next.x;
+            next = Vec3::new(cx, next.y + dy, next.z);
+        } else if next.x >= half_w {
+            let cx = half_w - 0.001;
+            let dy = next.x - cx;
+            next = Vec3::new(cx, next.y + dy, next.z);
         }
 
-        // Create and spawn the new point
-        let child_point = Point::new(point_position, point_position, false);
-        let child_point_id = commands
-            .spawn((
-                Mesh3d(point_mesh.clone()),
-                MeshMaterial3d(point_material.clone()),
-                Transform::from_translation(child_point.position)
-                    .with_scale(Vec3::splat(POINT_SIZE)),
-                child_point,
-            ))
-            .id();
-
-        // Create a stick joining the parent to the child
-        // Create a 3D position of the points - say they're positioned along the X-Y plane
-        let spacial_point_1 = parent_point.position;
-        let spacial_point_2 = child_point.position;
-
-        // Determine the objects rotation quaternion
-        let diff = spacial_point_2 - spacial_point_1;
-        let rot = Quat::from_rotation_arc(Vec3::X, diff.normalize());
-
-        // Spawn the stick linking the two points
-        commands.spawn((
-            Mesh3d(stick_mesh.clone()),
-            MeshMaterial3d(stick_material.clone()),
-            Transform {
-                translation: (spacial_point_1 + spacial_point_2) * 0.5,
-                rotation: rot,
-                scale: Vec3::new(STICK_LENGTH, STICK_SIZE, STICK_SIZE),
-            },
-            Stick::new(parent_point_id, child_point_id, STICK_LENGTH),
-        ));
-
-        // For the next iteration update the parent to be the current child
-        parent_point = child_point;
-        parent_point_id = child_point_id;
+        positions.push(next);
     }
+
+    // build adjacency for a linear chain (bidirectional)
+    let mut adj = vec![Vec::new(); positions.len()];
+    for i in 0..positions.len() - 1 {
+        adj[i].push(i + 1);
+        adj[i + 1].push(i);
+    }
+
+    // turn positions + adj into Vec<SpawnNode>
+    let mut mesh_network = Vec::with_capacity(positions.len());
+    for i in 0..positions.len() {
+        let pos = positions[i];
+        let locked = i == 0;
+        let neighbors = &adj[i];
+
+        mesh_network.push(SpawnNode {
+            point: Point::new(pos, pos, locked),
+            connection: Some(neighbors.iter().map(|&j| positions[j]).collect()),
+            point_material: if locked {
+                locked_material.clone()
+            } else {
+                point_material.clone()
+            },
+            point_mesh: point_mesh.clone(),
+            point_size: POINT_SIZE,
+            connection_mesh: Some(vec![stick_mesh.clone(); neighbors.len()]),
+            connection_material: Some(vec![stick_material.clone(); neighbors.len()]),
+            connection_size: Some(vec![STICK_SIZE; neighbors.len()]),
+        });
+    }
+
+    spawner(mesh_network, commands);
 }

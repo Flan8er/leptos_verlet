@@ -1,6 +1,9 @@
 use bevy::prelude::*;
 
-use crate::core::parameters::{Point, Stick};
+use crate::{
+    core::parameters::Point,
+    objects::spawner::{SpawnNode, spawner},
+};
 
 const POINT_SIZE: f32 = 0.025; // m (0.025m == 25mm)
 const STICK_SIZE: f32 = 0.01; // m (0.025m == 25mm)
@@ -13,143 +16,55 @@ pub fn spawn_square(
     position: Vec3,
 ) {
     let square_size = 0.45;
-
-    let bottom_left = Point::new(
-        Vec3::new(
-            position[0] - square_size,
-            position[1] - square_size,
-            position[2],
-        ),
-        Vec3::new(
-            position[0] - square_size,
-            position[1] - square_size,
-            position[2] + 0.1,
-        ),
-        false,
-    );
-    let bottom_right = Point::new(
-        Vec3::new(
-            position[0] + square_size,
-            position[1] - square_size,
-            position[2],
-        ),
-        Vec3::new(
-            position[0] + square_size,
-            position[1] - square_size,
-            position[2] + 0.1,
-        ),
-        false,
-    );
-    let top_right = Point::new(
-        Vec3::new(
-            position[0] + square_size,
-            position[1] + square_size,
-            position[2],
-        ),
-        Vec3::new(
-            position[0] + square_size,
-            position[1] + square_size,
-            position[2],
-        ),
-        false,
-    );
-    let top_left = Point::new(
-        Vec3::new(
-            position[0] - square_size,
-            position[1] + square_size,
-            position[2],
-        ),
-        Vec3::new(
-            position[0] - square_size,
-            position[1] + square_size,
-            position[2],
-        ),
-        false,
-    );
-
     let stick_mesh = meshes.add(Cuboid::default());
-
-    // Spawn the points of the square
-    let shape_points = vec![bottom_left, bottom_right, top_right, top_left];
-    let spawned_ids = spawn_points(
-        commands,
-        meshes,
-        point_material.clone(),
-        shape_points.clone(),
-    );
-
-    // Connect the points with a stick
-    // Perform one extra connection to rigidly link a set of corners
-    for mut i in 0..shape_points.len() + 1 {
-        let j = if i == shape_points.len() - 1 {
-            // Connect this corner back to the first corner (i.e. complete the border of the square)
-            0
-        } else if i == shape_points.len() {
-            // Connect some corner to the apposing corner
-            // Set i back to zero to keep the indexing in bounds of the array
-            i = 0;
-            // Return an offset of two (apposing corner)
-            i + 2
-        } else {
-            // Conntect this point to the next one in the array
-            i + 1
-        };
-
-        // Create a 3D position of the point - say it's positioned along the X-Y plane
-        let spacial_point_1 = shape_points[i].position; //.extend(0.)
-        let point_1_id = spawned_ids[i];
-        let spacial_point_2 = shape_points[j].position; //.extend(0.)
-        let point_2_id = spawned_ids[j];
-
-        // Calculate the distance between the two points
-        let diff = spacial_point_2 - spacial_point_1;
-        let distance = diff.length();
-
-        // Determine the objects rotation quaternion
-        let rot = Quat::from_rotation_arc(Vec3::X, diff.normalize());
-
-        // Spawn the stick linking the two points
-        commands.spawn((
-            Mesh3d(stick_mesh.clone()),
-            MeshMaterial3d(stick_material.clone()),
-            Transform {
-                translation: (spacial_point_1 + spacial_point_2) * 0.5,
-                rotation: rot,
-                scale: Vec3::new(distance, STICK_SIZE, STICK_SIZE),
-            },
-            Stick::new(point_1_id, point_2_id, distance),
-        ));
-    }
-}
-
-fn spawn_points(
-    commands: &mut Commands,
-    meshes: &mut ResMut<Assets<Mesh>>,
-    material: Handle<StandardMaterial>,
-    points: Vec<Point>,
-) -> Vec<Entity> {
-    // Keep track of the points that are spawned
-    let mut spawned_entities = Vec::new();
-
-    // Create the point mesh
     let point_mesh = meshes.add(Sphere::default());
 
-    // Spawn all the requested points
-    for pt in points {
-        // Spawn the point
-        let point_id = commands
-            .spawn((
-                Mesh3d(point_mesh.clone()),
-                MeshMaterial3d(material.clone()),
-                Transform::from_translation(pt.position) //.extend(0.)
-                    .with_scale(Vec3::splat(POINT_SIZE)),
-                pt,
-            ))
-            .id();
+    // corner offsets for a unit-square
+    let offsets = [(-1.0, -1.0), (1.0, -1.0), (1.0, 1.0), (-1.0, 1.0)];
 
-        // Add the entity to the lists of spawns
-        spawned_entities.push(point_id);
+    // compute actual corner positions
+    let corners: Vec<Vec3> = offsets
+        .iter()
+        .map(|&(dx, dy)| position + Vec3::new(dx * square_size, dy * square_size, 0.0))
+        .collect();
+
+    // define connectivity as index-pairs
+    //    perimeter + one diagonal
+    let edges = [(0, 1), (1, 2), (2, 3), (3, 0), (1, 3)];
+
+    // build adjacency list: for each corner `i` collect all `j` it connects to
+    let mut adj: Vec<Vec<usize>> = vec![Vec::new(); corners.len()];
+    for &(i, j) in &edges {
+        adj[i].push(j);
+        adj[j].push(i);
     }
 
-    spawned_entities
+    // build the SpawnNode list
+    let mesh_network: Vec<SpawnNode> = corners
+        .clone()
+        .into_iter()
+        .enumerate()
+        .map(|(i, corner_pos)| {
+            let neighbors = &adj[i];
+            // for each neighbor, we'll supply its absolute position ...
+            let connection = Some(neighbors.iter().map(|&j| corners[j]).collect());
+            // ... and exactly one mesh / material / size per connection
+            let connection_mesh = Some(vec![stick_mesh.clone(); neighbors.len()]);
+            let connection_material = Some(vec![stick_material.clone(); neighbors.len()]);
+            let connection_size = Some(vec![STICK_SIZE; neighbors.len()]);
+
+            SpawnNode {
+                point: Point::new(corner_pos, corner_pos, false),
+                connection,
+                point_material: point_material.clone(),
+                connection_material,
+                point_mesh: point_mesh.clone(),
+                connection_mesh,
+                point_size: POINT_SIZE,
+                connection_size,
+            }
+        })
+        .collect();
+
+    spawner(mesh_network, commands);
 }
