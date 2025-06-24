@@ -8,9 +8,9 @@ An engine that allows the addition of interactive verlet simulations into any le
 - Spawned objects are interactive through container bounds allowing for a uniquely interactive component.
 - A host of prebuilt objects using an agnostic "builder" layer that will allow, feature is in development, the developer to define and spawn custom objects into the simulation.
 
-![Cloth Demo](../example/public/Cloth.png)
-![Pendulum Demo](../example/public/Pendulum.png)
-![Rope Demo](../example/public/Rope.png)
+![Cloth Demo](example/public/Cloth.png)
+![Pendulum Demo](example/public/Pendulum.png)
+![Rope Demo](example/public/Rope.png)
 
 # Implementation
 
