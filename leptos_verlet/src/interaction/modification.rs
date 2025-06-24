@@ -16,17 +16,22 @@ pub enum ModifyEventType {
 }
 #[derive(Clone, PartialEq)]
 pub struct RelativeWindowPosition {
-    pub x: f32,
-    pub y: f32,
-    /// The ratio of container_width / container_height
-    pub x_to_y: f32,
+    pub event_x: f32,
+    pub event_y: f32,
+    pub container_h: f32,
+    pub container_w: f32,
 }
 impl RelativeWindowPosition {
-    pub fn to_bevy_coords(&self) -> Vec2 {
-        Vec2::new(
-            2. * *HALF_CAMERA_HEIGHT * self.x * self.x_to_y - *HALF_CAMERA_HEIGHT * self.x_to_y,
-            (2. * *HALF_CAMERA_HEIGHT) * (1. - self.y),
-        )
+    /// Takes in some incoming event location (in pixels) and outputs the ray
+    /// that coincides with that point in Bevy unit space.
+    pub fn create_ray(&self, camera: &Camera, camera_transform: &GlobalTransform) -> Ray3d {
+        if let Ok(cast_ray) =
+            camera.viewport_to_world(camera_transform, Vec2::new(self.event_x, self.event_y))
+        {
+            cast_ray
+        } else {
+            Ray3d::new(Vec3::new(0., 0., 0.), Dir3::NEG_Z)
+        }
     }
 }
 
@@ -99,44 +104,66 @@ pub fn handle_modification_event(
     mut next_target: ResMut<NextState<ModificationTarget>>,
     mut line_query: Query<(Entity, &mut LineConnections)>,
     bounds: Res<SimulationBounds>,
-    camera: Query<&GlobalTransform, With<Camera3d>>,
+    camera: Query<(&Camera, &GlobalTransform), With<Camera3d>>,
 ) {
-    let point_mesh = meshes.add(Sphere::default());
-    let stick_mesh = meshes.add(Cuboid::default());
     let point_material = materials.add(StandardMaterial::from(Color::WHITE));
     let stick_material = materials.add(StandardMaterial::from(Color::srgba(1., 1., 1., 0.5)));
 
     for event in event_reader.read() {
         match event {
             ModifyEventType::Left(relative_pos) => {
-                let event_coords = relative_pos.to_bevy_coords();
+                let (camera, camera_transform) = match camera.get_single() {
+                    Ok(queried_entity) => queried_entity,
+                    Err(_) => continue,
+                };
+
+                let ray = relative_pos.create_ray(camera, camera_transform);
+
+                let view_plane_world_pos = match ray_coords_at(ray, 0.) {
+                    Some(coordinates) => coordinates,
+                    None => continue,
+                };
 
                 match current_target.get() {
                     ModificationTarget::Point => {
-                        spawn_point(event_coords, &mut commands, &point_mesh, &point_material);
+                        let point = Point::new(view_plane_world_pos, view_plane_world_pos, false);
+                        point.spawn(&mut commands, &mut meshes, &point_material);
                     }
-                    ModificationTarget::Line => connect_points(
-                        event_coords,
+                    ModificationTarget::Line => spawn_stick(
+                        view_plane_world_pos,
                         &mut line_query,
                         &params.p2(),
                         &mut commands,
-                        &stick_mesh,
+                        &mut meshes,
                         &stick_material,
                     ),
                     ModificationTarget::Lock => {
-                        lock_affected_points(event_coords, &mut params.p1(), &mut materials);
+                        lock_affected_points(ray, &mut params.p1(), &mut materials);
                     }
                     ModificationTarget::Cut => next_target.set(ModificationTarget::Cutting),
                     ModificationTarget::SpawnSquare => {
-                        spawn_square_at(event_coords, &mut commands, &mut meshes, &mut materials)
+                        spawn_square(
+                            &mut commands,
+                            &mut meshes,
+                            point_material.clone(),
+                            stick_material.clone(),
+                            view_plane_world_pos,
+                        );
                     }
-                    ModificationTarget::SpawnRope => spawn_rope_at(
-                        event_coords,
-                        &mut commands,
-                        &mut meshes,
-                        &mut materials,
-                        &bounds,
-                    ),
+                    ModificationTarget::SpawnRope => {
+                        let point_material = materials.add(StandardMaterial::from(Color::WHITE));
+                        let stick_material =
+                            materials.add(StandardMaterial::from(Color::srgba(1., 1., 1., 0.5)));
+                        spawn_rope(
+                            &mut commands,
+                            &mut meshes,
+                            &mut materials,
+                            point_material,
+                            stick_material,
+                            &bounds,
+                            view_plane_world_pos,
+                        );
+                    }
                     ModificationTarget::SpawnCloth => spawn_cloth(
                         &mut commands,
                         &mut meshes,
@@ -149,7 +176,7 @@ pub fn handle_modification_event(
                         &mut meshes,
                         &point_material,
                         &stick_material,
-                        &event_coords,
+                        &view_plane_world_pos,
                     ),
                     _ => (),
                 }
@@ -157,16 +184,17 @@ pub fn handle_modification_event(
             ModifyEventType::Right(relative_pos) => {}
             ModifyEventType::Middle(relative_pos) => {}
             ModifyEventType::Move(relative_pos) => {
-                let event_coords = relative_pos.to_bevy_coords();
+                let (camera, camera_transform) = match camera.get_single() {
+                    Ok(queried_entity) => queried_entity,
+                    Err(_) => continue,
+                };
+
+                let ray = relative_pos.create_ray(camera, camera_transform);
 
                 match current_target.get() {
-                    ModificationTarget::Cutting => cut_sticks(
-                        event_coords,
-                        &mut stick_query,
-                        &params.p0(),
-                        &mut commands,
-                        &camera,
-                    ),
+                    ModificationTarget::Cutting => {
+                        cut_sticks(ray, &mut stick_query, &params.p0(), &mut commands)
+                    }
                     _ => (),
                 }
             }
@@ -194,30 +222,15 @@ fn purge_line(line_query: &Query<(Entity, &mut LineConnections)>, commands: &mut
     commands.spawn(LineConnections { p0: None, p1: None });
 }
 
-fn spawn_point(
-    event_coords: Vec2,
-    commands: &mut Commands,
-    mesh: &Handle<Mesh>,
-    material: &Handle<StandardMaterial>,
-) {
-    let parent_point = Point::new(event_coords.extend(0.), event_coords.extend(0.), false);
-
-    commands.spawn((
-        Mesh3d(mesh.clone()),
-        MeshMaterial3d(material.clone()),
-        Transform::from_translation(parent_point.position) //.extend(0.)
-            .with_scale(Vec3::splat(0.025)),
-        parent_point,
-    ));
-}
-
 fn lock_affected_points(
-    event_coords: Vec2,
+    cast_ray: Ray3d,
     points: &mut Query<(&mut MeshMaterial3d<StandardMaterial>, &mut Point)>,
     materials: &mut ResMut<Assets<StandardMaterial>>,
 ) {
+    // Loop through all the spawned points that should be analyzed for selection
     for (mut material, mut pt) in points {
-        if event_coords.extend(0.).distance(pt.position) <= MODIFICATION_RADIUS {
+        // Check to see if the point lies on the ray
+        if point_on_ray(&cast_ray, pt.position, MODIFICATION_RADIUS) {
             pt.locked = !pt.locked;
 
             let color = if pt.locked {
@@ -232,83 +245,12 @@ fn lock_affected_points(
     }
 }
 
-fn cut_sticks(
-    event_coords: Vec2,
-    sticks: &mut Query<(Entity, &mut Stick)>,
-    points: &Query<&Point>,
-    commands: &mut Commands,
-    camera: &Query<&GlobalTransform, With<Camera3d>>,
-) {
-    for (entity, stick) in sticks {
-        if let Ok([p1, p2]) = points.get_many([stick.point1, stick.point2]) {
-            // Collect every point along the line to see if the mouse is interacting with it anywhere
-            let camera = match camera.get_single() {
-                Ok(camera) => camera,
-                Err(_) => return,
-            };
-            let projected_p1 = screen_projection(p1.position, camera);
-            let projected_p2 = screen_projection(p2.position, camera);
-
-            let sample_points =
-                sample_points_along_line(projected_p1, projected_p2, MODIFICATION_RADIUS);
-            for point in sample_points {
-                if event_coords.distance(point) <= MODIFICATION_RADIUS {
-                    // Remove this line from the simulation
-                    commands.entity(entity).despawn();
-                    break;
-                }
-            }
-        }
-    }
-}
-
-/// This function takes in a point in 3D space and projects it into screen-space (Z=0)
-fn screen_projection(absolute_point: Vec3, viewing_plane: &GlobalTransform) -> Vec2 {
-    // The viewing plane's origin
-    let origin_position = viewing_plane.translation();
-
-    // Define the normal vector of the plane
-    let origin_norm = viewing_plane.rotation().mul_vec3(Vec3::Z).normalize();
-
-    // Calculate the projection of the absolute point into the relative coordinate frame of the viewing plane
-    let projected_point =
-        absolute_point - (origin_norm.dot(absolute_point - origin_position)) * origin_norm;
-
-    projected_point.truncate()
-}
-
-fn sample_points_along_line(start: Vec2, end: Vec2, spacing: f32) -> Vec<Vec2> {
-    assert!(spacing > 0.0, "spacing must be positive");
-
-    let delta = end - start;
-    let total_length = delta.length();
-    if total_length == 0.0 {
-        // degenerate case: start == end
-        return vec![start];
-    }
-
-    let direction = delta / total_length; // unit vector
-    let mut points = Vec::new();
-
-    points.push(start);
-
-    // march along the line in steps of `spacing`
-    let mut traveled = spacing;
-    while traveled < total_length {
-        points.push(start + direction * traveled);
-        traveled += spacing;
-    }
-
-    points.push(end);
-    points
-}
-
-fn connect_points(
-    event_coords: Vec2,
+pub fn spawn_stick(
+    event_coords: Vec3,
     line_query: &mut Query<(Entity, &mut LineConnections)>,
     points: &Query<(Entity, &Point)>,
     commands: &mut Commands,
-    stick_mesh: &Handle<Mesh>,
+    meshes: &mut ResMut<Assets<Mesh>>,
     material: &Handle<StandardMaterial>,
 ) {
     // Ideally there is only one line at any point
@@ -319,9 +261,11 @@ fn connect_points(
         }
     };
 
+    let stick_mesh = meshes.add(Cuboid::default());
+
     // Find, optionally, the point that is at the event coordinates
     for (entity, point) in points {
-        if event_coords.extend(0.).distance(point.position) <= MODIFICATION_RADIUS {
+        if event_coords.distance(point.position) <= MODIFICATION_RADIUS {
             // Attach this entity to one of the arms of the LineConntection
             match (line.p0, line.p1) {
                 (None, None) => {
@@ -374,41 +318,79 @@ fn connect_points(
     }
 }
 
-fn spawn_square_at(
-    event_coords: Vec2,
-    mut commands: &mut Commands,
-    mut meshes: &mut ResMut<Assets<Mesh>>,
-    materials: &mut ResMut<Assets<StandardMaterial>>,
+fn cut_sticks(
+    cast_ray: Ray3d,
+    sticks: &mut Query<(Entity, &mut Stick)>,
+    points: &Query<&Point>,
+    commands: &mut Commands,
 ) {
-    let point_material = materials.add(StandardMaterial::from(Color::WHITE));
-    let stick_material = materials.add(StandardMaterial::from(Color::srgba(1., 1., 1., 0.5)));
-
-    spawn_square(
-        &mut commands,
-        &mut meshes,
-        point_material,
-        stick_material,
-        event_coords.extend(0.),
-    );
+    for (entity, stick) in sticks {
+        if let Ok([p1, p2]) = points.get_many([stick.point1, stick.point2]) {
+            // Create the list of points between this sticks endpoints
+            let sample_points =
+                sample_points_along_line(p1.position, p2.position, MODIFICATION_RADIUS);
+            for point in sample_points {
+                // Check to see if the point lies on the ray
+                if point_on_ray(&cast_ray, point, MODIFICATION_RADIUS) {
+                    // Remove this line from the simulation
+                    commands.entity(entity).despawn();
+                    break;
+                }
+            }
+        }
+    }
 }
 
-fn spawn_rope_at(
-    event_coords: Vec2,
-    mut commands: &mut Commands,
-    mut meshes: &mut ResMut<Assets<Mesh>>,
-    mut materials: &mut ResMut<Assets<StandardMaterial>>,
-    bounds: &Res<SimulationBounds>,
-) {
-    let point_material = materials.add(StandardMaterial::from(Color::WHITE));
-    let stick_material = materials.add(StandardMaterial::from(Color::srgba(1., 1., 1., 0.5)));
+fn sample_points_along_line(start: Vec3, end: Vec3, spacing: f32) -> Vec<Vec3> {
+    assert!(spacing > 0.0, "spacing must be positive");
 
-    spawn_rope(
-        &mut commands,
-        &mut meshes,
-        &mut materials,
-        point_material,
-        stick_material,
-        bounds,
-        event_coords.extend(0.),
-    );
+    let delta = end - start;
+    let total_length = delta.length();
+    if total_length == 0.0 {
+        // degenerate case: start == end
+        return vec![start];
+    }
+
+    let direction = delta / total_length; // unit vector
+    let mut points = Vec::new();
+
+    points.push(start);
+
+    // march along the line in steps of `spacing`
+    let mut traveled = spacing;
+    while traveled < total_length {
+        points.push(start + direction * traveled);
+        traveled += spacing;
+    }
+
+    points.push(end);
+    points
+}
+
+fn ray_coords_at(ray: Ray3d, target_z: f32) -> Option<Vec3> {
+    let origin = ray.origin;
+    let direction = ray.direction;
+
+    if direction.z.abs() < f32::EPSILON {
+        // Ray is parallel to the z-plane; may never intersect
+        return None;
+    }
+
+    let t = (target_z - origin.z) / direction.z;
+    Some(origin + direction * t)
+}
+
+/// A check to see if any 3D point is places inline with a ray.
+fn point_on_ray(ray: &Ray3d, point: Vec3, tolerance: f32) -> bool {
+    let origin_to_point = point - ray.origin;
+    let direction: Vec3 = ray.direction.into();
+
+    let dot = origin_to_point.dot(direction);
+    if dot < 0.0 {
+        return false; // Point is behind the ray
+    }
+
+    let projected = ray.origin + direction * dot;
+
+    (projected - point).length_squared() <= tolerance * tolerance
 }

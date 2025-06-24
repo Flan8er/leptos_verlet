@@ -20,7 +20,7 @@ pub fn App() -> impl IntoView {
             <InfoModal active_modifier/>
 
             <div
-                node_ref=cimulation_container
+                node_ref=simulation_container
                 class="w-full h-full relative"
             >
                 <VerletCanvas parent_element=simulation_container/>

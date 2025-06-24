@@ -3540,7 +3540,7 @@ dependencies = [
 
 [[package]]
 name = "leptos_verlet"
-version = "1.0.3"
+version = "1.0.4"
 dependencies = [
  "bevy",
  "bevy_panorbit_camera",
@@ -3550,6 +3550,7 @@ dependencies = [
  "leptos-use",
  "once_cell",
  "rand",
+ "web-sys",
 ]
 
 [[package]]

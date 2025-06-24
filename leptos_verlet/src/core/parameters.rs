@@ -1,9 +1,11 @@
 use bevy::prelude::*;
 use once_cell::sync::Lazy;
 
+use crate::objects::spawner::{SpawnNode, spawner};
+
 // Setting the camera some distance away while keeping the "floor" at y=0
-pub const CAMERA_FOV: f32 = std::f32::consts::PI / 2.;
-pub const CAMERA_DISTANCE: f32 = 1.5; // m
+pub const CAMERA_FOV: f32 = std::f32::consts::PI / 4.;
+pub const CAMERA_DISTANCE: f32 = 4.; // m
 pub static HALF_CAMERA_HEIGHT: Lazy<f32> = Lazy::new(|| CAMERA_DISTANCE * (CAMERA_FOV / 2.0).tan());
 /// Percent of energy KEPT after each contact with a collision surface.
 pub const BOUNCE_LOSS: f32 = 0.9;
@@ -63,9 +65,34 @@ impl Point {
             // Calculate the change in velocity due to friction losses.
             let current_velocity = self.calculate_velocity();
             new_velocity[0] = current_velocity[0] - (current_velocity[0] * FLOOR_FRICTION);
+            new_velocity[2] = current_velocity[2] - (current_velocity[2] * FLOOR_FRICTION);
         }
 
         new_velocity
+    }
+
+    pub fn spawn(
+        &self,
+        commands: &mut Commands,
+        meshes: &mut ResMut<Assets<Mesh>>,
+        material: &Handle<StandardMaterial>,
+    ) {
+        let point_mesh = meshes.add(Sphere::default());
+        let point_size: f32 = 0.025;
+
+        let point = SpawnNode {
+            point: self.clone(),
+            connection: None,
+            point_material: material.clone(),
+            connection_material: None,
+            point_mesh,
+            connection_mesh: None,
+            point_size: point_size,
+            connection_size: None,
+        };
+        let mesh_network = vec![point];
+
+        spawner(mesh_network, commands);
     }
 }
 

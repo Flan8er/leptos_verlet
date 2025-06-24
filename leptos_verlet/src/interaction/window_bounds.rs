@@ -1,6 +1,6 @@
 use bevy::prelude::*;
 
-use crate::core::parameters::HALF_CAMERA_HEIGHT;
+use crate::core::parameters::{CAMERA_DISTANCE, HALF_CAMERA_HEIGHT};
 
 #[derive(Event, Clone)]
 pub struct LeptosResize {
@@ -11,13 +11,15 @@ pub struct LeptosResize {
 #[derive(Resource)]
 pub struct SimulationBounds {
     pub width: f32,
-    height: f32,
+    pub height: f32,
+    pub depth: f32,
 }
 impl Default for SimulationBounds {
     fn default() -> Self {
         Self {
             width: *HALF_CAMERA_HEIGHT * 2.,
             height: *HALF_CAMERA_HEIGHT * 2.,
+            depth: CAMERA_DISTANCE,
         }
     }
 }

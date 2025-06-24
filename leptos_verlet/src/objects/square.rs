@@ -5,6 +5,7 @@ use crate::{
     objects::spawner::{SpawnNode, spawner},
 };
 
+const HALF_SIZE: f32 = 0.225;
 const POINT_SIZE: f32 = 0.025; // m (0.025m == 25mm)
 const STICK_SIZE: f32 = 0.01; // m (0.025m == 25mm)
 
@@ -15,7 +16,6 @@ pub fn spawn_square(
     stick_material: Handle<StandardMaterial>,
     position: Vec3,
 ) {
-    let square_size = 0.45;
     let stick_mesh = meshes.add(Cuboid::default());
     let point_mesh = meshes.add(Sphere::default());
 
@@ -25,7 +25,7 @@ pub fn spawn_square(
     // compute actual corner positions
     let corners: Vec<Vec3> = offsets
         .iter()
-        .map(|&(dx, dy)| position + Vec3::new(dx * square_size, dy * square_size, 0.0))
+        .map(|&(dx, dy)| position + Vec3::new(dx * HALF_SIZE, dy * HALF_SIZE, 0.0))
         .collect();
 
     // define connectivity as index-pairs

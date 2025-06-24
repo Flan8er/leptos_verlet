@@ -2,9 +2,11 @@ use bevy::prelude::*;
 use rand::{seq::SliceRandom, thread_rng};
 
 use crate::{
-    core::parameters::{BOUNCE_LOSS, MIN_RENDER_DELTA, Point, Stick},
-    core::render::FrameComparison,
-    core::schedule::SimulationCycle,
+    core::{
+        parameters::{BOUNCE_LOSS, CAMERA_DISTANCE, MIN_RENDER_DELTA, Point, Stick},
+        render::FrameComparison,
+        schedule::SimulationCycle,
+    },
     interaction::{state::SimulationPlayState, window_bounds::SimulationBounds},
 };
 
@@ -130,14 +132,12 @@ fn constrain_points(
             pt.prev_position[0] = pt.position[0] + velocity[0] * BOUNCE_LOSS;
         }
         // Flip the Z travel of going beyond some bound
-        if pt.position[2] <= -10. {
-            let position_before = pt.position[2];
-            pt.position[2] = pt.prev_position[2];
-            pt.prev_position[2] = position_before;
-        } else if pt.position[2] > 0. {
-            let position_before = pt.position[2];
-            pt.position[2] = pt.prev_position[2];
-            pt.prev_position[2] = position_before;
+        if pt.position[2] <= -CAMERA_DISTANCE {
+            pt.position[2] = -CAMERA_DISTANCE;
+            pt.prev_position[2] = pt.position[2] + velocity[0] * BOUNCE_LOSS;
+        } else if pt.position[2] > CAMERA_DISTANCE {
+            pt.position[2] = CAMERA_DISTANCE;
+            pt.prev_position[2] = pt.position[2] + velocity[0] * BOUNCE_LOSS;
         }
 
         // Compare the distances before and after updated to see how it compares to the max_delta seen so far.

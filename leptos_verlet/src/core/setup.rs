@@ -1,7 +1,7 @@
 use bevy::{prelude::*, render::camera::ScalingMode};
 
 use crate::{
-    core::parameters::{CAMERA_DISTANCE, HALF_CAMERA_HEIGHT},
+    core::parameters::{CAMERA_DISTANCE, CAMERA_FOV, HALF_CAMERA_HEIGHT},
     interaction::window_bounds::SimulationBounds,
     objects::{rope::spawn_rope, square::spawn_square},
 };
@@ -16,13 +16,17 @@ impl Plugin for StartSimulation {
 fn setup_ui(mut commands: Commands) {
     commands.spawn((
         Camera3d::default(),
-        Projection::Orthographic(OrthographicProjection {
-            scaling_mode: ScalingMode::FixedVertical {
-                viewport_height: *HALF_CAMERA_HEIGHT * 2.,
-            },
-            scale: 1.,
-            ..OrthographicProjection::default_2d()
+        Projection::Perspective(PerspectiveProjection {
+            fov: CAMERA_FOV,
+            ..default()
         }),
+        // Projection::Orthographic(OrthographicProjection {
+        //     scaling_mode: ScalingMode::FixedVertical {
+        //         viewport_height: *HALF_CAMERA_HEIGHT * 2.,
+        //     },
+        //     scale: 1.,
+        //     ..OrthographicProjection::default_2d()
+        // }),
         Transform::from_xyz(0.0, *HALF_CAMERA_HEIGHT, CAMERA_DISTANCE),
     ));
 

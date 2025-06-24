@@ -12,60 +12,65 @@ pub fn MouseMonitor(active_modifier: RwSignal<ModificationTarget>) -> impl IntoV
     let left_click_action = {
         let sender = event_sender.clone();
         move |x: f64, y: f64| {
-            let window_width = width.get_untracked();
-            let window_height = height.get_untracked();
+            let container_width = width.get_untracked();
+            let container_height = height.get_untracked();
             let _ = sender.send(ModifyEventType::Left(RelativeWindowPosition {
-                x: (x / window_width) as f32,
-                y: (y / window_height) as f32,
-                x_to_y: (window_width / window_height) as f32,
+                event_x: x as f32,
+                event_y: y as f32,
+                container_h: container_height as f32,
+                container_w: container_width as f32,
             }));
         }
     };
     let middle_click_action = {
         let sender = event_sender.clone();
         move |x: f64, y: f64| {
-            let window_width = width.get_untracked();
-            let window_height = height.get_untracked();
+            let container_width = width.get_untracked();
+            let container_height = height.get_untracked();
             let _ = sender.send(ModifyEventType::Middle(RelativeWindowPosition {
-                x: (x / window_width) as f32,
-                y: (y / window_height) as f32,
-                x_to_y: (window_width / window_height) as f32,
+                event_x: x as f32,
+                event_y: y as f32,
+                container_h: container_height as f32,
+                container_w: container_width as f32,
             }));
         }
     };
     let right_click_action = {
         let sender = event_sender.clone();
         move |x: f64, y: f64| {
-            let window_width = width.get_untracked();
-            let window_height = height.get_untracked();
+            let container_width = width.get_untracked();
+            let container_height = height.get_untracked();
             let _ = sender.send(ModifyEventType::Right(RelativeWindowPosition {
-                x: (x / window_width) as f32,
-                y: (y / window_height) as f32,
-                x_to_y: (window_width / window_height) as f32,
+                event_x: x as f32,
+                event_y: y as f32,
+                container_h: container_height as f32,
+                container_w: container_width as f32,
             }));
         }
     };
     let move_action = {
         let sender = event_sender.clone();
         move |x: f64, y: f64| {
-            let window_width = width.get_untracked();
-            let window_height = height.get_untracked();
+            let container_width = width.get_untracked();
+            let container_height = height.get_untracked();
             let _ = sender.send(ModifyEventType::Move(RelativeWindowPosition {
-                x: (x / window_width) as f32,
-                y: (y / window_height) as f32,
-                x_to_y: (window_width / window_height) as f32,
+                event_x: x as f32,
+                event_y: y as f32,
+                container_h: container_height as f32,
+                container_w: container_width as f32,
             }));
         }
     };
     let release_action = {
         let sender = event_sender.clone();
         move |x: f64, y: f64| {
-            let window_width = width.get_untracked();
-            let window_height = height.get_untracked();
+            let container_width = width.get_untracked();
+            let container_height = height.get_untracked();
             let _ = sender.send(ModifyEventType::Release(RelativeWindowPosition {
-                x: (x / window_width) as f32,
-                y: (y / window_height) as f32,
-                x_to_y: (window_width / window_height) as f32,
+                event_x: x as f32,
+                event_y: y as f32,
+                container_h: container_height as f32,
+                container_w: container_width as f32,
             }));
         }
     };
@@ -127,5 +132,6 @@ fn target_mouse_position(ev: &web_sys::MouseEvent) -> Option<(f64, f64)> {
         return None;
     }
 
+    leptos::logging::log!("Click position: {},{}", x, y);
     Some((x, y))
 }

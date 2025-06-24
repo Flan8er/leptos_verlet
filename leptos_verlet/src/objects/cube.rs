@@ -14,7 +14,7 @@ pub fn spawn_cube(
     meshes: &mut ResMut<Assets<Mesh>>,
     point_material: &Handle<StandardMaterial>,
     stick_material: &Handle<StandardMaterial>,
-    center: &Vec2,
+    center: &Vec3,
 ) {
     // pick meshes
     let point_mesh = meshes.add(Sphere::default());
@@ -35,7 +35,7 @@ pub fn spawn_cube(
     let corners: Vec<Vec3> = offsets
         .iter()
         .map(|&(dx, dy, dz)| {
-            center.extend(0.) + Vec3::new(dx * HALF_SIZE, dy * HALF_SIZE, dz * HALF_SIZE)
+            center + Vec3::new(dx * HALF_SIZE, dy * HALF_SIZE, dz * HALF_SIZE - HALF_SIZE)
         })
         .collect();
 
