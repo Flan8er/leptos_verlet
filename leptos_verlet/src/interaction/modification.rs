@@ -130,7 +130,7 @@ pub fn handle_modification_event(
                         point.spawn(&mut commands, &mut meshes, &point_material);
                     }
                     ModificationTarget::Line => spawn_stick(
-                        view_plane_world_pos,
+                        ray,
                         &mut line_query,
                         &params.p2(),
                         &mut commands,
@@ -246,7 +246,7 @@ fn lock_affected_points(
 }
 
 pub fn spawn_stick(
-    event_coords: Vec3,
+    cast_ray: Ray3d,
     line_query: &mut Query<(Entity, &mut LineConnections)>,
     points: &Query<(Entity, &Point)>,
     commands: &mut Commands,
@@ -265,7 +265,7 @@ pub fn spawn_stick(
 
     // Find, optionally, the point that is at the event coordinates
     for (entity, point) in points {
-        if event_coords.distance(point.position) <= MODIFICATION_RADIUS {
+        if point_on_ray(&cast_ray, point.position, MODIFICATION_RADIUS) {
             // Attach this entity to one of the arms of the LineConntection
             match (line.p0, line.p1) {
                 (None, None) => {

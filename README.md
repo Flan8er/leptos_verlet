@@ -49,7 +49,7 @@ pub fn App() -> impl IntoView {
 
 ## Custom Shapes (WIP)
 
-Any shape can be created, simulated, and styled using the built in spawner that reads from a Vec<SpawnNode>.
+Any shape can be created, simulated, and styled using the built in spawner that reads from a Vec of SpawnNode.
 
 ```rust
 pub struct SpawnNode {
