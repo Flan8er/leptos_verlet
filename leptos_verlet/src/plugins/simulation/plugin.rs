@@ -4,7 +4,7 @@ use rand::{seq::SliceRandom, thread_rng};
 use crate::{
     core::{
         container_bounds::SimulationBounds,
-        parameters::{BOUNCE_LOSS, CAMERA_DISTANCE, MIN_RENDER_DELTA, Point, Stick},
+        parameters::{COEFF_RESTITUTION, MIN_RENDER_DELTA, Point, Stick},
         spawner::{SpawnBuffer, SpawnRequest, spawner},
     },
     plugins::{render::plugin::FrameComparison, schedule::plugin::SimulationCycle},
@@ -141,32 +141,62 @@ fn constrain_points(
 
         let velocity = pt.calculate_velocity();
 
+        let half_width = window_res.width * 0.5;
+        let half_depth = window_res.depth * 0.5;
+
         // Calculate bounce when the point hits the floor
-        if pt.position[1] <= 0. {
+        if pt.position.y <= 0. {
             // Bound the point to the floor
-            pt.position[1] = 0.;
-            pt.prev_position[1] = pt.position[1] + velocity[1] * BOUNCE_LOSS;
+            pt.position.y = 0.;
+            pt.prev_position.y = pt.position.y + velocity.y * COEFF_RESTITUTION;
         }
         // Calculate bounce when the point hits the left wall
-        if pt.position[0] <= -(window_res.width / 2.) {
+        if pt.position.x <= -half_width {
             // Bound the point to the wall
-            pt.position[0] = -(window_res.width / 2.);
-            pt.prev_position[0] = pt.position[0] + velocity[0] * BOUNCE_LOSS;
+            pt.position.x = -half_width;
+            pt.prev_position.x = pt.position.x + velocity.x * COEFF_RESTITUTION;
         }
         // Calculate bounce when the point hits the right wall
-        else if pt.position[0] >= window_res.width / 2. {
+        else if pt.position.x >= half_width {
             // Bound the point to the wall
-            pt.position[0] = window_res.width / 2.;
-            pt.prev_position[0] = pt.position[0] + velocity[0] * BOUNCE_LOSS;
+            pt.position.x = half_width;
+            pt.prev_position.x = pt.position.x + velocity.x * COEFF_RESTITUTION;
         }
         // Flip the Z travel of going beyond some bound
-        if pt.position[2] <= -CAMERA_DISTANCE {
-            pt.position[2] = -CAMERA_DISTANCE;
-            pt.prev_position[2] = pt.position[2] + velocity[0] * BOUNCE_LOSS;
-        } else if pt.position[2] > CAMERA_DISTANCE {
-            pt.position[2] = CAMERA_DISTANCE;
-            pt.prev_position[2] = pt.position[2] + velocity[0] * BOUNCE_LOSS;
+        if pt.position.z <= -half_depth {
+            pt.position.z = -half_depth;
+            pt.prev_position.z = pt.position.z + velocity.z * COEFF_RESTITUTION;
+        } else if pt.position.z > half_depth {
+            pt.position.z = half_depth;
+            pt.prev_position.z = pt.position.z + velocity.z * COEFF_RESTITUTION;
         }
+
+        // let half_width = window_res.width * 0.5;
+        // let half_depth = window_res.depth * 0.5;
+
+        // // Y (floor)
+        // if pt.position.y <= 0.0 {
+        //     pt.position.y = 0.0;
+        //     pt.prev_position.y = pt.position.y + velocity.y * COEFF_RESTITUTION;
+        // }
+
+        // // X (left & right walls)
+        // if pt.position.x <= -half_width {
+        //     pt.position.x = -half_width;
+        //     pt.prev_position.x = pt.position.x + velocity.x * COEFF_RESTITUTION;
+        // } else if pt.position.x >= half_width && velocity.x > 0.0 {
+        //     pt.position.x = half_width;
+        //     pt.prev_position.x = pt.position.x + velocity.x * COEFF_RESTITUTION;
+        // }
+
+        // // Z (front & back walls)
+        // if pt.position.z <= -half_depth {
+        //     pt.position.z = -half_depth;
+        //     pt.prev_position.z = pt.position.z + velocity.z * COEFF_RESTITUTION;
+        // } else if pt.position.z >= half_depth && velocity.z > 0.0 {
+        //     pt.position.z = half_depth;
+        //     pt.prev_position.z = pt.position.z + velocity.z * COEFF_RESTITUTION;
+        // }
 
         // Compare the distances before and after updated to see how it compares to the max_delta seen so far.
         let updated_position = pt.position;

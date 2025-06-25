@@ -9,9 +9,9 @@ pub const CAMERA_DISTANCE: f32 = 4.; // m
 pub static HALF_CAMERA_HEIGHT: Lazy<f32> = Lazy::new(|| CAMERA_DISTANCE * (CAMERA_FOV / 2.0).tan());
 
 /// Percent of energy KEPT after each contact with a collision surface.
-pub const BOUNCE_LOSS: f32 = 0.9;
+pub const COEFF_RESTITUTION: f32 = 0.95;
 /// Percent of energy KEPT after each contact with the floor.
-pub const FLOOR_FRICTION: f32 = 0.95;
+pub const FRICTION_RESTITUTION: f32 = 0.95;
 /// m/s^2
 pub const GRAVITY: f32 = 9.8;
 /// Amount of energy KEPT each frame passing through the air.
@@ -69,8 +69,7 @@ impl Point {
         if self.position[1] <= 0.001 {
             // Calculate the change in velocity due to friction losses.
             let current_velocity = self.calculate_velocity();
-            new_velocity[0] = current_velocity[0] - (current_velocity[0] * FLOOR_FRICTION);
-            new_velocity[2] = current_velocity[2] - (current_velocity[2] * FLOOR_FRICTION);
+            new_velocity = current_velocity * FRICTION_RESTITUTION;
         }
 
         new_velocity
