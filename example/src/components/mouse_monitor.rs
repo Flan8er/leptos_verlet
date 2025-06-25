@@ -89,7 +89,6 @@ pub fn MouseMonitor(active_modifier: RwSignal<ModificationTarget>) -> impl IntoV
             on:mousedown=move |ev| {
                 ev.prevent_default();
                 if let Some((x, y)) = target_mouse_position(&ev) {
-                    log!("Clicked event: {}", ev.button());
                     match ev.button() {
                         0 => left_click_action(x, y),
                         1 => middle_click_action(x, y),
@@ -132,6 +131,5 @@ fn target_mouse_position(ev: &web_sys::MouseEvent) -> Option<(f64, f64)> {
         return None;
     }
 
-    leptos::logging::log!("Click position: {},{}", x, y);
     Some((x, y))
 }

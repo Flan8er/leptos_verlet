@@ -7,10 +7,7 @@ use crate::{
         parameters::{BOUNCE_LOSS, CAMERA_DISTANCE, MIN_RENDER_DELTA, Point, Stick},
         spawner::{SpawnBuffer, SpawnRequest, spawner},
     },
-    plugins::{
-        play_state::plugin::SimulationPlayState, render::plugin::FrameComparison,
-        schedule::plugin::SimulationCycle,
-    },
+    plugins::{render::plugin::FrameComparison, schedule::plugin::SimulationCycle},
 };
 
 pub struct SimulationPlugin;
@@ -18,16 +15,6 @@ impl Plugin for SimulationPlugin {
     // Verlet based on: https://www.youtube.com/watch?v=3HjO_RGIjCU
     fn build(&self, app: &mut App) {
         app.insert_resource(SpawnBuffer::default())
-            .configure_sets(
-                Update,
-                (
-                    SimulationCycle::Preparation,
-                    SimulationCycle::Compute,
-                    SimulationCycle::Converge,
-                )
-                    .chain()
-                    .run_if(in_state(SimulationPlayState::Running)),
-            )
             .add_systems(
                 Update,
                 (handle_spawn_requests, spawn_buffer)

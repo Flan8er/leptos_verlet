@@ -1,5 +1,7 @@
 use bevy::prelude::*;
 
+use crate::plugins::play_state::plugin::SimulationPlayState;
+
 #[derive(Debug, Hash, PartialEq, Eq, Clone, SystemSet)]
 pub enum SimulationCycle {
     Preparation,
@@ -20,6 +22,16 @@ impl Plugin for SchedulePlugin {
                 SimulationCycle::Render,
             )
                 .chain(),
+        )
+        .configure_sets(
+            Update,
+            (
+                SimulationCycle::Compute,
+                SimulationCycle::Converge,
+                SimulationCycle::Render,
+            )
+                .chain()
+                .run_if(in_state(SimulationPlayState::Running)),
         );
     }
 }

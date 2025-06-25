@@ -9,6 +9,7 @@ use crate::{
             ray_coords_at, spawn_stick,
         },
         play_state::plugin::SimulationPlayState,
+        schedule::plugin::SimulationCycle,
     },
     prelude::Point,
 };
@@ -18,7 +19,9 @@ impl Plugin for ModificationPlugin {
     fn build(&self, app: &mut App) {
         app.init_state::<ModificationTarget>().add_systems(
             Update,
-            (handle_target_change, handle_modification_event).chain(),
+            (handle_target_change, handle_modification_event)
+                .chain()
+                .in_set(SimulationCycle::Preparation),
         );
     }
 }
