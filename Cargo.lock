@@ -894,15 +894,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "bevy_panorbit_camera"
-version = "0.21.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "55e54a2fbf69a596957134b387093009c1d4dc046a6c9f3d62f37230525dca19"
-dependencies = [
- "bevy",
-]
-
-[[package]]
 name = "bevy_pbr"
 version = "0.15.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2219,7 +2210,6 @@ dependencies = [
 name = "example"
 version = "0.1.0"
 dependencies = [
- "bevy",
  "console_error_panic_hook",
  "icondata",
  "leptos",
@@ -3544,7 +3534,6 @@ name = "leptos_verlet"
 version = "1.1.0"
 dependencies = [
  "bevy",
- "bevy_panorbit_camera",
  "getrandom 0.3.3",
  "leptos",
  "leptos-bevy-canvas",

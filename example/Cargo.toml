@@ -15,4 +15,3 @@ leptos-use.workspace = true
 leptos_icons.workspace = true
 icondata.workspace = true
 web-sys.workspace = true
-bevy.workspace = true
