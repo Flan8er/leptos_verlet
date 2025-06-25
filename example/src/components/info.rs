@@ -7,6 +7,8 @@ use leptos_verlet::prelude::*;
 
 #[component]
 pub fn InfoModal(active_modifier: RwSignal<ModificationTarget>) -> impl IntoView {
+    let point = expect_context::<LeptosEventReceiver<PointInfo>>();
+    let point_sender = expect_context::<LeptosEventSender<SetPointInfo>>();
     let el = NodeRef::<Div>::new();
 
     // `style` is a helper string "left: {x}px; top: {y}px;"
@@ -28,65 +30,41 @@ pub fn InfoModal(active_modifier: RwSignal<ModificationTarget>) -> impl IntoView
                 <h3>"Position"</h3>
                 <div class="flex w-full space-between gap-2">
                     { // X
-                        // let x = position.get().x;
-                        let x = -1.2;
                         view! {
                             <div class="flex items-center gap-2">
                                 <h3>"X"</h3>
-                                <input
+                                <p
                                     class="w-16 px-1 py-0.5 text-sm bg-card-active border rounded text-primary-text focus:outline-none focus:ring-2 focus:ring-accent"
-                                    type="number"
-                                    value=move || x.to_string()
-                                    on:input=move |ev| {
-                                        if let Ok(val) = event_target_value(&ev).parse::<f32>() {
-                                            // let mut p = position.get();
-                                            // p.x = val;
-                                            // set_position(p);
-                                        }
-                                    }
-                                />
+                                >{move || match point.get() {
+                                    Some(point_info) => point_info.position[0],
+                                    None => 0.
+                                }}</p>
                             </div>
                         }
                     }
                     { // Y
-                        // let y = position.get().y;
-                        let y = 1.3;
                         view! {
                             <div class="flex items-center gap-2">
                                 <h3>"Y"</h3>
-                                <input
+                                <p
                                     class="w-16 px-1 py-0.5 text-sm bg-card-active border rounded text-primary-text focus:outline-none focus:ring-2 focus:ring-accent"
-                                    type="number"
-                                    value=move || y.to_string()
-                                    on:input=move |ev| {
-                                        if let Ok(val) = event_target_value(&ev).parse::<f32>() {
-                                            // let mut p = position.get();
-                                            // p.y = val;
-                                            // set_position(p);
-                                        }
-                                    }
-                                />
+                                >{move || match point.get() {
+                                    Some(point_info) => point_info.position[1],
+                                    None => 0.
+                                }}</p>
                             </div>
                         }
                     }
                     { // Z
-                        // let z = position.get().z;
-                        let z = 0.1;
                         view! {
                             <div class="flex items-center gap-2">
                                 <h3>"Z"</h3>
-                                <input
+                                <p
                                     class="w-16 px-1 py-0.5 text-sm bg-card-active border rounded text-primary-text focus:outline-none focus:ring-2 focus:ring-accent"
-                                    type="number"
-                                    value=move || z.to_string()
-                                    on:input=move |ev| {
-                                        if let Ok(val) = event_target_value(&ev).parse::<f32>() {
-                                            // let mut p = position.get();
-                                            // p.z = val;
-                                            // set_position(p);
-                                        }
-                                    }
-                                />
+                                >{move || match point.get() {
+                                    Some(point_info) => point_info.position[2],
+                                    None => 0.
+                                }}</p>
                             </div>
                         }
                     }
@@ -94,20 +72,33 @@ pub fn InfoModal(active_modifier: RwSignal<ModificationTarget>) -> impl IntoView
                 <h3>"Velocity"</h3>
                 <div class="flex w-full space-between gap-2">
                     { // VX
-                        // let vx = velocity.get().x;
-                        let vx = 0.6;
                         view! {
                             <div class="flex items-center gap-2">
                                 <h3>"X"</h3>
                                 <input
                                     class="w-16 px-1 py-0.5 text-sm bg-card-active border rounded text-primary-text focus:outline-none focus:ring-2 focus:ring-accent"
                                     type="number"
-                                    value=move || vx.to_string()
-                                    on:input=move |ev| {
-                                        if let Ok(val) = event_target_value(&ev).parse::<f32>() {
-                                            // let mut v = velocity.get();
-                                            // v.x = val;
-                                            // set_velocity(v);
+                                    value=move || match point.get() {
+                                        Some(point_info) => point_info.velocity[0],
+                                        None => 0.
+                                    }
+                                    on:input=
+                                    {
+                                        let point_sender = point_sender.clone();
+                                        move |ev| {
+                                            if let Ok(val) = event_target_value(&ev).parse::<f32>() {
+                                                match point.get() {
+                                                    Some(mut current_state) => {
+                                                        current_state.velocity[0] = val;
+                                                        point_sender.send(SetPointInfo {
+                                                            position: current_state.position,
+                                                            velocity: current_state.velocity
+                                                        }).ok();
+
+                                                    },
+                                                    None => ()
+                                                };
+                                            }
                                         }
                                     }
                                 />
@@ -115,20 +106,33 @@ pub fn InfoModal(active_modifier: RwSignal<ModificationTarget>) -> impl IntoView
                         }
                     }
                     { // VY
-                        // let vy = velocity.get().y;
-                        let vy = 1.8;
                         view! {
                             <div class="flex items-center gap-2">
                                 <h3>"Y"</h3>
                                 <input
                                     class="w-16 px-1 py-0.5 text-sm bg-card-active border rounded text-primary-text focus:outline-none focus:ring-2 focus:ring-accent"
                                     type="number"
-                                    value=move || vy.to_string()
-                                    on:input=move |ev| {
-                                        if let Ok(val) = event_target_value(&ev).parse::<f32>() {
-                                            // let mut v = velocity.get();
-                                            // v.y = val;
-                                            // set_velocity(v);
+                                    value=move || match point.get() {
+                                        Some(point_info) => point_info.velocity[1],
+                                        None => 0.
+                                    }
+                                    on:input=
+                                    {
+                                        let point_sender = point_sender.clone();
+                                        move |ev| {
+                                            if let Ok(val) = event_target_value(&ev).parse::<f32>() {
+                                                match point.get() {
+                                                    Some(mut current_state) => {
+                                                        current_state.velocity[1] = val;
+                                                        point_sender.send(SetPointInfo {
+                                                            position: current_state.position,
+                                                            velocity: current_state.velocity
+                                                        }).ok();
+
+                                                    },
+                                                    None => ()
+                                                };
+                                            }
                                         }
                                     }
                                 />
@@ -136,20 +140,33 @@ pub fn InfoModal(active_modifier: RwSignal<ModificationTarget>) -> impl IntoView
                         }
                     }
                     { // VZ
-                        // let vz = velocity.get().z;
-                        let vz = 0.1;
                         view! {
                             <div class="flex items-center gap-2">
                                 <h3>"Z"</h3>
                                 <input
                                     class="w-16 px-1 py-0.5 text-sm bg-card-active border rounded text-primary-text focus:outline-none focus:ring-2 focus:ring-accent"
                                     type="number"
-                                    value=move || vz.to_string()
-                                    on:input=move |ev| {
-                                        if let Ok(val) = event_target_value(&ev).parse::<f32>() {
-                                            // let mut v = velocity.get();
-                                            // v.z = val;
-                                            // set_velocity(v);
+                                    value=move || match point.get() {
+                                        Some(point_info) => point_info.velocity[2],
+                                        None => 0.
+                                    }
+                                    on:input=
+                                    {
+                                        let point_sender = point_sender.clone();
+                                        move |ev| {
+                                            if let Ok(val) = event_target_value(&ev).parse::<f32>() {
+                                                match point.get() {
+                                                    Some(mut current_state) => {
+                                                        current_state.velocity[2] = val;
+                                                        point_sender.send(SetPointInfo {
+                                                            position: current_state.position,
+                                                            velocity: current_state.velocity
+                                                        }).ok();
+
+                                                    },
+                                                    None => ()
+                                                };
+                                            }
                                         }
                                     }
                                 />

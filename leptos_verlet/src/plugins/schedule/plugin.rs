@@ -28,7 +28,7 @@ impl Plugin for SchedulePlugin {
             (
                 SimulationCycle::Compute,
                 SimulationCycle::Converge,
-                SimulationCycle::Render,
+                // SimulationCycle::Render,
             )
                 .chain()
                 .run_if(in_state(SimulationPlayState::Running)),

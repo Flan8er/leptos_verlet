@@ -5,9 +5,12 @@ use leptos_use::{UseElementSizeReturn, use_element_size};
 
 use crate::{
     plugins::{
-        info::plugin::InfoPlugin, modification::plugin::ModificationPlugin,
-        play_state::plugin::PlayStatePlugin, render::plugin::RenderPlugin,
-        schedule::plugin::SchedulePlugin, simulation::plugin::SimulationPlugin,
+        info::plugin::{InfoPlugin, PointInfo, SetPointInfo},
+        modification::plugin::ModificationPlugin,
+        play_state::plugin::PlayStatePlugin,
+        render::plugin::RenderPlugin,
+        schedule::plugin::SchedulePlugin,
+        simulation::plugin::SimulationPlugin,
         start_up::plugin::StartupPlugin,
     },
     prelude::{
@@ -23,7 +26,8 @@ pub fn VerletConfigProvider() -> impl IntoView {
     let (element_size_sender, bevy_element_size_receiver) = event_l2b::<LeptosResize>();
     let (spawn_sender, bevy_spawn_receiver) = event_l2b::<SpawnRequest>();
 
-    // let (info_receiver, bevy_info_sender) = event_b2l();
+    let (info_receiver, bevy_info_sender) = event_b2l::<PointInfo>();
+    let (info_sender, bevy_info_receiver) = event_l2b::<SetPointInfo>();
     // need to create a signal that listens and can pre populate the info modal with incoming event reads
     // need a writer event to update bevy from info reads that targets the ActiveInfoTarget
 
@@ -32,12 +36,16 @@ pub fn VerletConfigProvider() -> impl IntoView {
     provide_context(event_sender);
     provide_context(element_size_sender);
     provide_context(spawn_sender);
+    provide_context(info_receiver);
+    provide_context(info_sender);
 
     provide_context(bevy_state_receiver);
     provide_context(bevy_target_receiver);
     provide_context(bevy_event_receiver);
     provide_context(bevy_element_size_receiver);
     provide_context(bevy_spawn_receiver);
+    provide_context(bevy_info_sender);
+    provide_context(bevy_info_receiver);
 
     view! {
         <></>
@@ -57,6 +65,8 @@ pub fn VerletCanvas(parent_element: NodeRef<leptos::html::Div>) -> impl IntoView
     let bevy_event_receiver = expect_context::<BevyEventReceiver<ModifyEventType>>();
     let bevy_element_size_receiver = expect_context::<BevyEventReceiver<LeptosResize>>();
     let bevy_spawn_receiver = expect_context::<BevyEventReceiver<SpawnRequest>>();
+    let bevy_info_sender = expect_context::<BevyEventSender<PointInfo>>();
+    let bevy_info_receiver = expect_context::<BevyEventReceiver<SetPointInfo>>();
 
     let UseElementSizeReturn { width, height } = use_element_size(parent_element);
     Effect::new(move |_| {
@@ -68,7 +78,15 @@ pub fn VerletCanvas(parent_element: NodeRef<leptos::html::Div>) -> impl IntoView
     view! {
         <BevyCanvas
             init=move || {
-                init_bevy_app(bevy_state_receiver, bevy_target_receiver, bevy_event_receiver, bevy_element_size_receiver, bevy_spawn_receiver)
+                init_bevy_app(
+                    bevy_state_receiver,
+                    bevy_target_receiver,
+                    bevy_event_receiver,
+                    bevy_element_size_receiver,
+                    bevy_spawn_receiver,
+                    bevy_info_sender,
+                    bevy_info_receiver
+                )
             }
         />
     }
@@ -80,6 +98,8 @@ fn init_bevy_app(
     event_receiver: BevyEventReceiver<ModifyEventType>,
     window_resize_receiver: BevyEventReceiver<LeptosResize>,
     spawn_receiver: BevyEventReceiver<SpawnRequest>,
+    info_sender: BevyEventSender<PointInfo>,
+    info_receiver: BevyEventReceiver<SetPointInfo>,
 ) -> App {
     let mut app = App::new();
     app.add_plugins(DefaultPlugins.set(WindowPlugin {
@@ -97,6 +117,8 @@ fn init_bevy_app(
     .import_event_from_leptos(event_receiver)
     .import_event_from_leptos(window_resize_receiver)
     .import_event_from_leptos(spawn_receiver)
+    .export_event_to_leptos(info_sender)
+    .import_event_from_leptos(info_receiver)
     .insert_resource(ClearColor(Color::NONE))
     .add_plugins(PlayStatePlugin)
     .add_plugins(SchedulePlugin)

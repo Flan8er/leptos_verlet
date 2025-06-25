@@ -4,6 +4,7 @@ use crate::{
     core::{container_bounds::SimulationBounds, parameters::Stick},
     objects::{cloth::spawn_cloth, cube::spawn_cube, rope::spawn_rope, square::spawn_square},
     plugins::{
+        info::plugin::ActiveInfoTarget,
         modification::utils::{
             cut_sticks, lock_affected_points, perge_info_target, point_info, purge_line,
             ray_coords_at, spawn_stick,
@@ -88,8 +89,6 @@ pub struct LineConnections {
     pub p0: Option<Entity>,
     pub p1: Option<Entity>,
 }
-#[derive(Component)]
-pub struct ActiveInfoTarget;
 
 pub fn handle_target_change(
     mut next_state: ResMut<NextState<SimulationPlayState>>,

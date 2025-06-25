@@ -2,7 +2,7 @@ use bevy::prelude::*;
 
 use crate::{
     core::parameters::{MODIFICATION_RADIUS, Stick},
-    plugins::modification::plugin::{ActiveInfoTarget, LineConnections},
+    plugins::{info::plugin::ActiveInfoTarget, modification::plugin::LineConnections},
     prelude::Point,
 };
 
@@ -11,7 +11,7 @@ pub fn perge_info_target(
     commands: &mut Commands,
 ) {
     for (entity, _) in point_query.iter() {
-        commands.entity(entity).despawn();
+        commands.entity(entity).remove::<ActiveInfoTarget>();
     }
 }
 
