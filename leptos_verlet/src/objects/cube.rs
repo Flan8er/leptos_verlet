@@ -1,13 +1,11 @@
 use bevy::prelude::*;
 
 use crate::{
-    core::parameters::Point,
+    core::parameters::{POINT_SIZE, Point, STICK_SIZE},
     objects::spawner::{SpawnNode, spawner},
 };
 
 const HALF_SIZE: f32 = 0.225;
-const POINT_SIZE: f32 = 0.025;
-const STICK_SIZE: f32 = 0.01;
 
 pub fn spawn_cube(
     commands: &mut Commands,
@@ -20,7 +18,7 @@ pub fn spawn_cube(
     let point_mesh = meshes.add(Sphere::default());
     let stick_mesh = meshes.add(Cuboid::default());
 
-    // 1) the eight corners of a unit-cube
+    // the eight corners of a unit-cube
     let offsets = [
         (-1., -1., -1.), // 0
         (1., -1., -1.),  // 1
@@ -39,7 +37,7 @@ pub fn spawn_cube(
         })
         .collect();
 
-    // 2) the 12 cube-edges (undirected), plus one diagonal per face:
+    // the 12 cube-edges (undirected), plus one diagonal per face:
     let mut edges = vec![
         // bottom face (dz = –1)
         (0, 1),
@@ -58,7 +56,7 @@ pub fn spawn_cube(
         (3, 7),
     ];
 
-    // face diagonals—pick one per face:
+    // face diagonals - one per face:
     let face_diagonals = [
         (1, 3), // bottom face
         (5, 7), // top face
@@ -69,14 +67,14 @@ pub fn spawn_cube(
     ];
     edges.extend_from_slice(&face_diagonals);
 
-    // 3) build bidirectional adjacency
+    // build bidirectional adjacency
     let mut adj = vec![Vec::new(); corners.len()];
     for &(i, j) in &edges {
         adj[i].push(j);
         adj[j].push(i);
     }
 
-    // 4) assemble your mesh_network
+    // assemble mesh_network
     let mesh_network: Vec<SpawnNode> = corners
         .iter()
         .cloned()
@@ -96,6 +94,5 @@ pub fn spawn_cube(
         })
         .collect();
 
-    // 5) hand it off
     spawner(mesh_network, commands);
 }

@@ -3,8 +3,8 @@ use bevy::prelude::*;
 use crate::{
     core::parameters::{Point, Stick},
     interaction::{
+        container_bounds::{SimulationBounds, window_listener},
         modification::{ModificationTarget, handle_modification_event, handle_target_change},
-        window_bounds::{SimulationBounds, window_listener},
     },
 };
 

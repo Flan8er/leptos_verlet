@@ -2219,6 +2219,7 @@ dependencies = [
 name = "example"
 version = "0.1.0"
 dependencies = [
+ "bevy",
  "console_error_panic_hook",
  "icondata",
  "leptos",
@@ -3540,7 +3541,7 @@ dependencies = [
 
 [[package]]
 name = "leptos_verlet"
-version = "1.0.5"
+version = "1.0.6"
 dependencies = [
  "bevy",
  "bevy_panorbit_camera",

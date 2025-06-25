@@ -1,13 +1,11 @@
 use bevy::prelude::*;
 
 use crate::{
-    core::parameters::{HALF_CAMERA_HEIGHT, Point},
-    interaction::window_bounds::SimulationBounds,
+    core::parameters::{HALF_CAMERA_HEIGHT, POINT_SIZE, Point, STICK_SIZE},
+    interaction::container_bounds::SimulationBounds,
     objects::spawner::{SpawnNode, spawner},
 };
 
-const POINT_SIZE: f32 = 0.025; // m (0.025m == 25mm)
-const STICK_SIZE: f32 = 0.01; // m (0.025m == 25mm)
 const GRID_GAP: f32 = 0.1; // m
 const CONTROL_BAR_HEIGHT: f32 = 0.075;
 const FLOOR_OFFSET: f32 = 0.25; // m

@@ -2,6 +2,7 @@ use bevy::prelude::*;
 
 #[derive(Debug, Hash, PartialEq, Eq, Clone, SystemSet)]
 pub enum SimulationCycle {
+    Spawn,
     Compute,
     Converge,
     Render,
@@ -13,6 +14,7 @@ impl Plugin for SchedulePlugin {
         app.configure_sets(
             Update,
             (
+                SimulationCycle::Spawn,
                 SimulationCycle::Compute,
                 SimulationCycle::Converge,
                 SimulationCycle::Render,

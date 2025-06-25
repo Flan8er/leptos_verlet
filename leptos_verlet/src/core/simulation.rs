@@ -6,22 +6,61 @@ use crate::{
         parameters::{BOUNCE_LOSS, CAMERA_DISTANCE, MIN_RENDER_DELTA, Point, Stick},
         render::FrameComparison,
         schedule::SimulationCycle,
+        spawner::{SpawnBuffer, SpawnRequest, spawner},
     },
-    interaction::{state::SimulationPlayState, window_bounds::SimulationBounds},
+    interaction::{container_bounds::SimulationBounds, play_state::SimulationPlayState},
 };
 
 pub struct RunSimulation;
 impl Plugin for RunSimulation {
     // Verlet based on: https://www.youtube.com/watch?v=3HjO_RGIjCU
     fn build(&self, app: &mut App) {
-        app.configure_sets(
-            Update,
-            (SimulationCycle::Compute, SimulationCycle::Converge)
-                .chain()
-                .run_if(in_state(SimulationPlayState::Running)),
-        )
-        .add_systems(Update, (update_points).in_set(SimulationCycle::Compute))
-        .add_systems(Update, (converge).in_set(SimulationCycle::Converge));
+        app.insert_resource(SpawnBuffer::default())
+            .configure_sets(
+                Update,
+                (
+                    SimulationCycle::Spawn,
+                    SimulationCycle::Compute,
+                    SimulationCycle::Converge,
+                )
+                    .chain()
+                    .run_if(in_state(SimulationPlayState::Running)),
+            )
+            .add_systems(
+                Update,
+                (handle_spawn_requests, spawn_buffer)
+                    .chain()
+                    .in_set(SimulationCycle::Spawn),
+            )
+            .add_systems(Update, (update_points).in_set(SimulationCycle::Compute))
+            .add_systems(Update, (converge).in_set(SimulationCycle::Converge));
+    }
+}
+
+/// Listens for any spawn requst sent from Leptos and inserts the mesh_network into
+/// the spawn buffer for the next spawn cycle.
+fn handle_spawn_requests(
+    mut event_reader: EventReader<SpawnRequest>,
+    mut buffer: ResMut<SpawnBuffer>,
+) {
+    for event in event_reader.read() {
+        buffer.buffer.push(event.clone())
+    }
+}
+/// Spawn any mesh networks in the spawn buffer and clear out the buffer.
+fn spawn_buffer(
+    mut buffer: ResMut<SpawnBuffer>,
+    mut commands: Commands,
+    mut meshes: ResMut<Assets<Mesh>>,
+    mut materials: ResMut<Assets<StandardMaterial>>,
+) {
+    for mesh_network in buffer.buffer.drain(..) {
+        spawner(
+            mesh_network.mesh_network,
+            &mut commands,
+            &mut meshes,
+            &mut materials,
+        );
     }
 }
 

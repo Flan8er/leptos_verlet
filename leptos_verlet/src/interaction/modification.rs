@@ -1,8 +1,8 @@
 use bevy::prelude::*;
 
 use crate::{
-    core::parameters::{HALF_CAMERA_HEIGHT, MODIFICATION_RADIUS, Point, Stick},
-    interaction::{state::SimulationPlayState, window_bounds::SimulationBounds},
+    core::parameters::{MODIFICATION_RADIUS, Point, Stick},
+    interaction::{container_bounds::SimulationBounds, play_state::SimulationPlayState},
     objects::{cloth::spawn_cloth, cube::spawn_cube, rope::spawn_rope, square::spawn_square},
 };
 
@@ -181,8 +181,8 @@ pub fn handle_modification_event(
                     _ => (),
                 }
             }
-            ModifyEventType::Right(relative_pos) => {}
-            ModifyEventType::Middle(relative_pos) => {}
+            ModifyEventType::Right(_relative_pos) => {}
+            ModifyEventType::Middle(_relative_pos) => {}
             ModifyEventType::Move(relative_pos) => {
                 let (camera, camera_transform) = match camera.get_single() {
                     Ok(queried_entity) => queried_entity,
@@ -289,8 +289,8 @@ pub fn spawn_stick(
                     // Retreive the physical component from the IDs
                     if let Ok([p1, p2]) = points.get_many([p0_id, p1_id]) {
                         // Calculate stick position and orientation
-                        let spacial_point_1 = p1.1.position; //.extend(0.)
-                        let spacial_point_2 = p2.1.position; //.extend(0.)
+                        let spacial_point_1 = p1.1.position;
+                        let spacial_point_2 = p2.1.position;
 
                         let diff = spacial_point_2 - spacial_point_1;
                         let rot = Quat::from_rotation_arc(Vec3::X, diff.normalize());
@@ -385,12 +385,17 @@ fn point_on_ray(ray: &Ray3d, point: Vec3, tolerance: f32) -> bool {
     let origin_to_point = point - ray.origin;
     let direction: Vec3 = ray.direction.into();
 
+    // How much of vector A lies in some direction.
     let dot = origin_to_point.dot(direction);
+
+    // Exclude points behind the ray’s origin.
     if dot < 0.0 {
-        return false; // Point is behind the ray
+        return false;
     }
 
+    // Find the closest point on the ray to the given point
     let projected = ray.origin + direction * dot;
 
+    // Check how far the point is from its closest point on the ray.
     (projected - point).length_squared() <= tolerance * tolerance
 }

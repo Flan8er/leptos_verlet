@@ -1,13 +1,11 @@
 use bevy::prelude::*;
 
 use crate::{
-    core::parameters::Point,
-    interaction::window_bounds::SimulationBounds,
+    core::parameters::{POINT_SIZE, Point, STICK_SIZE},
+    interaction::container_bounds::SimulationBounds,
     objects::spawner::{SpawnNode, spawner},
 };
 
-const POINT_SIZE: f32 = 0.025; // m (0.025m == 25mm)
-const STICK_SIZE: f32 = 0.01; // m (0.025m == 25mm)
 /// Smaller stick length will result in a denser rope
 const STICK_LENGTH: f32 = 0.025; // m
 const DROP_ANGLE: f32 = 35.; // deg

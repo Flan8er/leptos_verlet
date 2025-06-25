@@ -1,13 +1,11 @@
 use bevy::prelude::*;
 
 use crate::{
-    core::parameters::Point,
+    core::parameters::{POINT_SIZE, Point, STICK_SIZE},
     objects::spawner::{SpawnNode, spawner},
 };
 
 const HALF_SIZE: f32 = 0.225;
-const POINT_SIZE: f32 = 0.025; // m (0.025m == 25mm)
-const STICK_SIZE: f32 = 0.01; // m (0.025m == 25mm)
 
 pub fn spawn_square(
     commands: &mut Commands,

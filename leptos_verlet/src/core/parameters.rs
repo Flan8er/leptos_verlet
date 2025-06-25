@@ -7,6 +7,7 @@ use crate::objects::spawner::{SpawnNode, spawner};
 pub const CAMERA_FOV: f32 = std::f32::consts::PI / 4.;
 pub const CAMERA_DISTANCE: f32 = 4.; // m
 pub static HALF_CAMERA_HEIGHT: Lazy<f32> = Lazy::new(|| CAMERA_DISTANCE * (CAMERA_FOV / 2.0).tan());
+
 /// Percent of energy KEPT after each contact with a collision surface.
 pub const BOUNCE_LOSS: f32 = 0.9;
 /// Percent of energy KEPT after each contact with the floor.
@@ -23,7 +24,11 @@ pub const MIN_RENDER_DELTA: f32 = 0.001;
 /// The distance from the mouse any modification request will disperse to nearby components.
 pub const MODIFICATION_RADIUS: f32 = 0.03;
 
-#[derive(Component, Clone, Copy, Debug)]
+/// Central definition of each default geometry properties
+pub const POINT_SIZE: f32 = 0.025; // m (0.025m == 25mm)
+pub const STICK_SIZE: f32 = 0.01; // m (0.025m == 25mm)
+
+#[derive(Component, Clone, Copy, Debug, PartialEq)]
 pub struct Point {
     pub position: Vec3,
     pub prev_position: Vec3,
