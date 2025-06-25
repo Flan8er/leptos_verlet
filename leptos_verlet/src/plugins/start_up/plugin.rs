@@ -1,15 +1,19 @@
 use bevy::prelude::*;
 
 use crate::{
-    core::parameters::{CAMERA_DISTANCE, CAMERA_FOV, HALF_CAMERA_HEIGHT},
-    interaction::container_bounds::SimulationBounds,
+    core::{
+        container_bounds::{SimulationBounds, window_listener},
+        parameters::{CAMERA_DISTANCE, CAMERA_FOV, HALF_CAMERA_HEIGHT},
+    },
     objects::{rope::spawn_rope, square::spawn_square},
 };
 
-pub struct StartSimulation;
-impl Plugin for StartSimulation {
+pub struct StartupPlugin;
+impl Plugin for StartupPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(Startup, (setup_ui, load_initial_particles).chain());
+        app.insert_resource(SimulationBounds::default())
+            .add_systems(Startup, (setup_ui, load_initial_particles).chain())
+            .add_systems(Update, (window_listener,));
     }
 }
 

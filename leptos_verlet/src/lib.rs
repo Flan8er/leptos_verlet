@@ -1,18 +1,18 @@
 mod core;
-mod interaction;
 mod objects;
+mod plugins;
 
 pub mod prelude {
     pub use crate::{
         core::{
+            container_bounds::LeptosResize,
             core::{VerletCanvas, VerletConfigProvider},
             parameters::Point,
             spawner::{MaterialType, MeshType, SpawnNode, SpawnRequest},
         },
-        interaction::{
-            container_bounds::LeptosResize,
-            modification::{ModificationTarget, ModifyEventType, RelativeWindowPosition},
-            play_state::SimulationPlayStateRequest,
+        plugins::{
+            modification::plugin::{ModificationTarget, ModifyEventType, RelativeWindowPosition},
+            play_state::plugin::SimulationPlayStateRequest,
         },
     };
     pub use bevy::math::Vec3;

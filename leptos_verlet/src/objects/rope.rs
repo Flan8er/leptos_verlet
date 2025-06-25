@@ -1,8 +1,10 @@
 use bevy::prelude::*;
 
 use crate::{
-    core::parameters::{POINT_SIZE, Point, STICK_SIZE},
-    interaction::container_bounds::SimulationBounds,
+    core::{
+        container_bounds::SimulationBounds,
+        parameters::{POINT_SIZE, Point, STICK_SIZE},
+    },
     objects::spawner::{SpawnNode, spawner},
 };
 

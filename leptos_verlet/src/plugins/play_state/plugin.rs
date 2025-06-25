@@ -1,12 +1,6 @@
 use bevy::prelude::*;
 
-use crate::{
-    core::parameters::{Point, Stick},
-    interaction::{
-        container_bounds::{SimulationBounds, window_listener},
-        modification::{ModificationTarget, handle_modification_event, handle_target_change},
-    },
-};
+use crate::core::parameters::{Point, Stick};
 
 #[derive(Event, Clone)]
 pub enum SimulationPlayStateRequest {
@@ -22,22 +16,11 @@ pub enum SimulationPlayState {
     Paused,
 }
 
-pub struct StatePlugin;
-impl Plugin for StatePlugin {
+pub struct PlayStatePlugin;
+impl Plugin for PlayStatePlugin {
     fn build(&self, app: &mut App) {
         app.init_state::<SimulationPlayState>()
-            .init_state::<ModificationTarget>()
-            .insert_resource(SimulationBounds::default())
-            .add_systems(
-                Update,
-                (
-                    window_listener,
-                    handle_target_change,
-                    handle_play_state_request,
-                    handle_modification_event,
-                )
-                    .chain(),
-            );
+            .add_systems(Update, (handle_play_state_request,).chain());
     }
 }
 

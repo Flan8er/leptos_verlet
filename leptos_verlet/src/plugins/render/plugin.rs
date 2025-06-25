@@ -1,9 +1,21 @@
 use bevy::prelude::*;
 
-use crate::core::{
-    parameters::{Point, Stick},
-    schedule::SimulationCycle,
+use crate::{
+    core::parameters::{Point, Stick},
+    plugins::schedule::plugin::SimulationCycle,
 };
+
+pub struct RenderPlugin;
+impl Plugin for RenderPlugin {
+    fn build(&self, app: &mut App) {
+        app.insert_resource(FrameComparison::default()).add_systems(
+            Update,
+            (render_points, render_sticks)
+                .chain()
+                .in_set(SimulationCycle::Render),
+        );
+    }
+}
 
 #[derive(Debug, Clone, Copy, Eq, PartialEq, Hash, Resource)]
 pub struct FrameComparison {
@@ -25,19 +37,7 @@ impl Default for FrameComparison {
     }
 }
 
-pub struct RenderView;
-impl Plugin for RenderView {
-    fn build(&self, app: &mut App) {
-        app.insert_resource(FrameComparison::default()).add_systems(
-            Update,
-            (render_points, render_sticks)
-                .chain()
-                .in_set(SimulationCycle::Render),
-        );
-    }
-}
-
-pub fn render_points(mut query: Query<(&Point, &mut Transform)>, state: Res<FrameComparison>) {
+fn render_points(mut query: Query<(&Point, &mut Transform)>, state: Res<FrameComparison>) {
     // Dont rerender if the state hasnt changed
     if !state.changed {
         return;
@@ -48,7 +48,7 @@ pub fn render_points(mut query: Query<(&Point, &mut Transform)>, state: Res<Fram
     }
 }
 
-pub fn render_sticks(
+fn render_sticks(
     point_query: Query<&Point>,
     mut stick_query: Query<(&Stick, &mut Transform)>,
     state: Res<FrameComparison>,

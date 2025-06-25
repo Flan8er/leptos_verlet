@@ -4,12 +4,15 @@ use leptos_bevy_canvas::prelude::*;
 use leptos_use::{UseElementSizeReturn, use_element_size};
 
 use crate::{
-    core::{
-        render::RenderView, schedule::SchedulePlugin, setup::StartSimulation,
-        simulation::RunSimulation, spawner::SpawnRequest,
+    plugins::{
+        info::plugin::InfoPlugin, modification::plugin::ModificationPlugin,
+        play_state::plugin::PlayStatePlugin, render::plugin::RenderPlugin,
+        schedule::plugin::SchedulePlugin, simulation::plugin::SimulationPlugin,
+        start_up::plugin::StartupPlugin,
     },
-    interaction::play_state::StatePlugin,
-    prelude::{LeptosResize, ModificationTarget, ModifyEventType, SimulationPlayStateRequest},
+    prelude::{
+        LeptosResize, ModificationTarget, ModifyEventType, SimulationPlayStateRequest, SpawnRequest,
+    },
 };
 
 #[component]
@@ -19,6 +22,10 @@ pub fn VerletConfigProvider() -> impl IntoView {
     let (event_sender, bevy_event_receiver) = event_l2b::<ModifyEventType>();
     let (element_size_sender, bevy_element_size_receiver) = event_l2b::<LeptosResize>();
     let (spawn_sender, bevy_spawn_receiver) = event_l2b::<SpawnRequest>();
+
+    // let (info_receiver, bevy_info_sender) = event_b2l();
+    // need to create a signal that listens and can pre populate the info modal with incoming event reads
+    // need a writer event to update bevy from info reads that targets the ActiveInfoTarget
 
     provide_context(state_sender);
     provide_context(target_sender);
@@ -91,15 +98,12 @@ fn init_bevy_app(
     .import_event_from_leptos(window_resize_receiver)
     .import_event_from_leptos(spawn_receiver)
     .insert_resource(ClearColor(Color::NONE))
-    // Initialize the schedule the logic runs on
     .add_plugins(SchedulePlugin)
-    // Initialize simulation states
-    .add_plugins(StatePlugin)
-    // Create the UI and spawn the particles
-    .add_plugins(StartSimulation)
-    // Calculate new frame
-    .add_plugins(RunSimulation)
-    // Render new frame
-    .add_plugins(RenderView);
+    .add_plugins(PlayStatePlugin)
+    .add_plugins(ModificationPlugin)
+    .add_plugins(InfoPlugin)
+    .add_plugins(SimulationPlugin)
+    .add_plugins(StartupPlugin)
+    .add_plugins(RenderPlugin);
     app
 }

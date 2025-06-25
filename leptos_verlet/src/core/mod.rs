@@ -1,7 +1,4 @@
+pub mod container_bounds;
 pub mod core;
 pub mod parameters;
-pub mod render;
-pub mod schedule;
-pub mod setup;
-pub mod simulation;
 pub mod spawner;

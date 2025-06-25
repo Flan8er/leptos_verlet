@@ -3,23 +3,25 @@ use rand::{seq::SliceRandom, thread_rng};
 
 use crate::{
     core::{
+        container_bounds::SimulationBounds,
         parameters::{BOUNCE_LOSS, CAMERA_DISTANCE, MIN_RENDER_DELTA, Point, Stick},
-        render::FrameComparison,
-        schedule::SimulationCycle,
         spawner::{SpawnBuffer, SpawnRequest, spawner},
     },
-    interaction::{container_bounds::SimulationBounds, play_state::SimulationPlayState},
+    plugins::{
+        play_state::plugin::SimulationPlayState, render::plugin::FrameComparison,
+        schedule::plugin::SimulationCycle,
+    },
 };
 
-pub struct RunSimulation;
-impl Plugin for RunSimulation {
+pub struct SimulationPlugin;
+impl Plugin for SimulationPlugin {
     // Verlet based on: https://www.youtube.com/watch?v=3HjO_RGIjCU
     fn build(&self, app: &mut App) {
         app.insert_resource(SpawnBuffer::default())
             .configure_sets(
                 Update,
                 (
-                    SimulationCycle::Spawn,
+                    SimulationCycle::Preparation,
                     SimulationCycle::Compute,
                     SimulationCycle::Converge,
                 )
@@ -30,7 +32,7 @@ impl Plugin for RunSimulation {
                 Update,
                 (handle_spawn_requests, spawn_buffer)
                     .chain()
-                    .in_set(SimulationCycle::Spawn),
+                    .in_set(SimulationCycle::Preparation),
             )
             .add_systems(Update, (update_points).in_set(SimulationCycle::Compute))
             .add_systems(Update, (converge).in_set(SimulationCycle::Converge));
