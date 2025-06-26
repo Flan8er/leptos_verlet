@@ -31,6 +31,7 @@ fn handle_play_state_request(
     mut event_reader: EventReader<SimulationPlayStateRequest>,
     point_query: Query<Entity, With<Point>>,
     stick_query: Query<Entity, With<Stick>>,
+    mesh_query: Query<Entity, With<SceneRoot>>,
 ) {
     for event in event_reader.read() {
         match event {
@@ -50,6 +51,10 @@ fn handle_play_state_request(
                 }
 
                 for entity in point_query.iter() {
+                    commands.entity(entity).despawn_recursive();
+                }
+
+                for entity in mesh_query.iter() {
                     commands.entity(entity).despawn_recursive();
                 }
 

@@ -57,6 +57,7 @@ pub struct SpawnNode {
     pub point_size: f32,
     /// The thickness of the connection.
     pub connection_size: Option<Vec<f32>>,
+    /// The model_name for any imported model to be attached to this point.
     pub attachment: Option<String>,
 }
 impl Default for SpawnNode {

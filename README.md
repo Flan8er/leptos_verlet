@@ -47,6 +47,24 @@ pub fn App() -> impl IntoView {
 }
 ```
 
+## Custom Meshes
+
+In the latest ^1.2 update, a new function is exposed to allow custom meshes to be imported and attached to a simulation body. The mesh will track and follow whatever body it's attached to.
+
+```rust
+// Imports and spawns the mesh into the simulation
+// Must be ran inside a reactive context
+model_loader("/static/monkey.glb", "monkey.glb", 0);
+
+// To attach the mesh to a SpawnNode:
+SpawnNode {
+    attachment: Some(String::from("monkey.glb")),
+    ..default()
+}
+```
+
+The SpawnNode type also takes in an extra argument: "attachment" which is an optional String where the string is the same model_name used in the model_loader function ("monkey.glb" in the above code). This essentially tells the mesh to follow whatever point it is attached to.
+
 ## Custom Shapes
 
 Any shape can be created, simulated, and styled using the built in spawner that reads from a Vec of SpawnNode.
@@ -69,6 +87,8 @@ pub struct SpawnNode {
     pub point_size: f32,
     /// The thickness of the connection.
     pub connection_size: Option<Vec<f32>>,
+    /// The model_name for any imported model to be attached to this point.
+    pub attachment: Option<String>,
 }
 
 pub struct SpawnRequest {
@@ -107,9 +127,10 @@ let bottom_left_node = SpawnNode {
     connection_mesh: Some(vec![stick_mesh.clone(), stick_mesh.clone()]),
     point_size: point_size,
     connection_size: Some(vec![stick_size, stick_size]),
+    ..default()
 };
 let bottom_right_node = SpawnNode {
-    point: Point::new(bottom_right, bottom_right, false),
+    point: Point::new(bottom_right, bottom_right + 0.5, false),
     connection: Some(vec![bottom_left, top_right, top_left]),
     point_material: point_material.clone(),
     connection_material: Some(vec![
@@ -125,6 +146,7 @@ let bottom_right_node = SpawnNode {
     ]),
     point_size: point_size,
     connection_size: Some(vec![stick_size, stick_size, stick_size]),
+    ..default()
 };
 let top_right_node = SpawnNode {
     point: Point::new(top_right, top_right, false),
@@ -135,6 +157,7 @@ let top_right_node = SpawnNode {
     connection_mesh: Some(vec![stick_mesh.clone(), stick_mesh.clone()]),
     point_size: point_size,
     connection_size: Some(vec![stick_size, stick_size]),
+    ..default()
 };
 let top_left_node = SpawnNode {
     point: Point::new(top_left, top_left, false),
@@ -153,6 +176,7 @@ let top_left_node = SpawnNode {
     ]),
     point_size: point_size,
     connection_size: Some(vec![stick_size, stick_size, stick_size]),
+    ..default()
 };
 let mesh_network = vec![
     bottom_left_node,
@@ -174,7 +198,6 @@ let spawn_custom = {
 
 ## Future Changes
 
-- The ability to attach mesh assets to a shape
 - "Grab" interaction - interact with the model by grabbing it with the cursor
 - Define the constraints of the simulation on initialization
   - Gravity
