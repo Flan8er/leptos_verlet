@@ -4,8 +4,9 @@ use crate::{
     core::{
         container_bounds::SimulationBounds,
         parameters::{POINT_SIZE, Point, STICK_SIZE},
+        spawner::{SpawnNode, spawner},
     },
-    objects::spawner::{SpawnNode, spawner},
+    prelude::{MaterialType, MeshType},
 };
 
 /// Smaller stick length will result in a denser rope
@@ -17,16 +18,16 @@ pub fn spawn_rope(
     commands: &mut Commands,
     meshes: &mut ResMut<Assets<Mesh>>,
     materials: &mut ResMut<Assets<StandardMaterial>>,
-    point_material: Handle<StandardMaterial>,
-    stick_material: Handle<StandardMaterial>,
+    point_material: MaterialType,
+    stick_material: MaterialType,
     bounds: &Res<SimulationBounds>,
     position: Vec3,
 ) {
-    let point_mesh = meshes.add(Sphere::default());
-    let stick_mesh = meshes.add(Cuboid::default());
+    let point_mesh = MeshType::Sphere;
+    let stick_mesh = MeshType::Cuboid;
 
     // red “locked” material for the root node
-    let locked_material = materials.add(StandardMaterial::from(Color::srgb(1.0, 0.0, 0.0)));
+    let locked_material = MaterialType::Color([1., 0., 0., 1.]);
 
     // how many sticks (and thus how many extra points)
     let sticks_tot = (ROPE_LENGTH / STICK_LENGTH).floor() as usize;
@@ -82,8 +83,9 @@ pub fn spawn_rope(
             connection_mesh: Some(vec![stick_mesh.clone(); neighbors.len()]),
             connection_material: Some(vec![stick_material.clone(); neighbors.len()]),
             connection_size: Some(vec![STICK_SIZE; neighbors.len()]),
+            ..default()
         });
     }
 
-    spawner(mesh_network, commands);
+    spawner(mesh_network, commands, meshes, materials);
 }

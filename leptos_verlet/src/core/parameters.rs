@@ -1,7 +1,10 @@
 use bevy::prelude::*;
 use once_cell::sync::Lazy;
 
-use crate::objects::spawner::{SpawnNode, spawner};
+use crate::{
+    core::spawner::{SpawnNode, spawner},
+    prelude::{MaterialType, MeshType},
+};
 
 // Setting the camera some distance away while keeping the "floor" at y=0
 pub const CAMERA_FOV: f32 = std::f32::consts::PI / 4.;
@@ -79,24 +82,19 @@ impl Point {
         &self,
         commands: &mut Commands,
         meshes: &mut ResMut<Assets<Mesh>>,
-        material: &Handle<StandardMaterial>,
+        material: &mut ResMut<Assets<StandardMaterial>>,
+        point_mesh: MeshType,
+        point_material: MaterialType,
     ) {
-        let point_mesh = meshes.add(Sphere::default());
-        let point_size: f32 = 0.025;
-
         let point = SpawnNode {
             point: self.clone(),
-            connection: None,
-            point_material: material.clone(),
-            connection_material: None,
+            point_material,
             point_mesh,
-            connection_mesh: None,
-            point_size: point_size,
-            connection_size: None,
+            ..default()
         };
         let mesh_network = vec![point];
 
-        spawner(mesh_network, commands);
+        spawner(mesh_network, commands, meshes, material);
     }
 }
 

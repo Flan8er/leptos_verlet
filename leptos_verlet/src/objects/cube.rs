@@ -1,8 +1,11 @@
 use bevy::prelude::*;
 
 use crate::{
-    core::parameters::{POINT_SIZE, Point, STICK_SIZE},
-    objects::spawner::{SpawnNode, spawner},
+    core::{
+        parameters::{POINT_SIZE, Point, STICK_SIZE},
+        spawner::{SpawnNode, spawner},
+    },
+    prelude::{MaterialType, MeshType},
 };
 
 const HALF_SIZE: f32 = 0.225;
@@ -10,13 +13,14 @@ const HALF_SIZE: f32 = 0.225;
 pub fn spawn_cube(
     commands: &mut Commands,
     meshes: &mut ResMut<Assets<Mesh>>,
-    point_material: &Handle<StandardMaterial>,
-    stick_material: &Handle<StandardMaterial>,
+    materials: &mut ResMut<Assets<StandardMaterial>>,
+    point_material: MaterialType,
+    stick_material: MaterialType,
     center: &Vec3,
 ) {
     // pick meshes
-    let point_mesh = meshes.add(Sphere::default());
-    let stick_mesh = meshes.add(Cuboid::default());
+    let point_mesh = MeshType::Sphere;
+    let stick_mesh = MeshType::Cuboid;
 
     // the eight corners of a unit-cube
     let offsets = [
@@ -90,9 +94,10 @@ pub fn spawn_cube(
                 connection_mesh: Some(vec![stick_mesh.clone(); neigh.len()]),
                 connection_material: Some(vec![stick_material.clone(); neigh.len()]),
                 connection_size: Some(vec![STICK_SIZE; neigh.len()]),
+                ..default()
             }
         })
         .collect();
 
-    spawner(mesh_network, commands);
+    spawner(mesh_network, commands, meshes, materials);
 }

@@ -171,33 +171,6 @@ fn constrain_points(
             pt.prev_position.z = pt.position.z + velocity.z * COEFF_RESTITUTION;
         }
 
-        // let half_width = window_res.width * 0.5;
-        // let half_depth = window_res.depth * 0.5;
-
-        // // Y (floor)
-        // if pt.position.y <= 0.0 {
-        //     pt.position.y = 0.0;
-        //     pt.prev_position.y = pt.position.y + velocity.y * COEFF_RESTITUTION;
-        // }
-
-        // // X (left & right walls)
-        // if pt.position.x <= -half_width {
-        //     pt.position.x = -half_width;
-        //     pt.prev_position.x = pt.position.x + velocity.x * COEFF_RESTITUTION;
-        // } else if pt.position.x >= half_width && velocity.x > 0.0 {
-        //     pt.position.x = half_width;
-        //     pt.prev_position.x = pt.position.x + velocity.x * COEFF_RESTITUTION;
-        // }
-
-        // // Z (front & back walls)
-        // if pt.position.z <= -half_depth {
-        //     pt.position.z = -half_depth;
-        //     pt.prev_position.z = pt.position.z + velocity.z * COEFF_RESTITUTION;
-        // } else if pt.position.z >= half_depth && velocity.z > 0.0 {
-        //     pt.position.z = half_depth;
-        //     pt.prev_position.z = pt.position.z + velocity.z * COEFF_RESTITUTION;
-        // }
-
         // Compare the distances before and after updated to see how it compares to the max_delta seen so far.
         let updated_position = pt.position;
         let delta = updated_position.distance(previous_position).abs();

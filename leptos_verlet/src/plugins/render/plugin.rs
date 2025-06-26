@@ -10,7 +10,7 @@ impl Plugin for RenderPlugin {
     fn build(&self, app: &mut App) {
         app.insert_resource(FrameComparison::default()).add_systems(
             Update,
-            (render_points, render_sticks)
+            (render_points, render_points_and_sticks)
                 .chain()
                 .in_set(SimulationCycle::Render),
         );
@@ -48,43 +48,37 @@ fn render_points(mut query: Query<(&Point, &mut Transform)>, state: Res<FrameCom
     }
 }
 
-fn render_sticks(
-    point_query: Query<&Point>,
-    mut stick_query: Query<(&Stick, &mut Transform)>,
+/// Render's sticks based off the new point translations but also applies rotation to the points based off it's sticks rotation.
+fn render_points_and_sticks(
+    point_pos_q: Query<&Point>,
+    mut point_tf_q: Query<&mut Transform, (With<Point>, Without<Stick>)>,
+    mut stick_tf_q: Query<(&Stick, &mut Transform), (With<Stick>, Without<Point>)>,
     state: Res<FrameComparison>,
 ) {
-    // Dont rerender if the state hasnt changed
     if !state.changed {
         return;
     }
 
-    for (stick, mut t) in stick_query.iter_mut() {
-        // get the two Point components
-        let p1 = match point_query.get(stick.point1) {
-            Ok(point) => point,
-            Err(_) => {
-                continue;
-            }
-        };
-        let p2 = match point_query.get(stick.point2) {
-            Ok(point) => point,
-            Err(_) => continue,
-        };
+    // 1) Update/rotate each stick…
+    for (stick, mut stick_tf) in stick_tf_q.iter_mut() {
+        let p1 = point_pos_q.get(stick.point1).unwrap();
+        let p2 = point_pos_q.get(stick.point2).unwrap();
 
-        let a = p1.position;
-        let b = p2.position;
+        let mid = (p1.position + p2.position) * 0.5;
+        let rot = Quat::from_rotation_arc(Vec3::X, (p2.position - p1.position).normalize());
 
-        // midpoint
-        let mid = (a + b) * 0.5;
-        // direction and length
-        let diff = b - a;
-        // let len = diff.length();
+        stick_tf.translation = mid;
+        stick_tf.rotation = rot;
 
-        // write into the Transform
-        t.translation = mid;
-        // assume your Cuboid is length-1 along +X; rotate X→diff
-        t.rotation = Quat::from_rotation_arc(Vec3::X, diff.normalize());
-        // stretch X to match the distance; keep Y/Z at 1 (or whatever thickness you like)
-        // t.scale = Vec3::new(len, 0.025, 0.025);
+        // 2) …and immediately drive its endpoints’ rotations:
+        if let Ok(mut pt1_tf) = point_tf_q.get_mut(stick.point1) {
+            pt1_tf.rotation = rot;
+        }
+        if let Ok(mut pt2_tf) = point_tf_q.get_mut(stick.point2) {
+            pt2_tf.rotation = rot;
+        }
     }
+
+    // (Optionally, if you also want to propagate position changes here instead
+    // of in a separate system, you could loop point_tf_q and set translations.)
 }

@@ -4,8 +4,9 @@ use crate::{
     core::{
         container_bounds::SimulationBounds,
         parameters::{HALF_CAMERA_HEIGHT, POINT_SIZE, Point, STICK_SIZE},
+        spawner::{SpawnNode, spawner},
     },
-    objects::spawner::{SpawnNode, spawner},
+    prelude::{MaterialType, MeshType},
 };
 
 const GRID_GAP: f32 = 0.1; // m
@@ -15,12 +16,13 @@ const FLOOR_OFFSET: f32 = 0.25; // m
 pub fn spawn_cloth(
     commands: &mut Commands,
     meshes: &mut ResMut<Assets<Mesh>>,
-    point_material: &Handle<StandardMaterial>,
-    stick_material: &Handle<StandardMaterial>,
+    point_material: MaterialType,
+    stick_material: MaterialType,
+    materials: &mut ResMut<Assets<StandardMaterial>>,
     bounds: &Res<SimulationBounds>,
 ) {
-    let point_mesh = meshes.add(Sphere::default());
-    let stick_mesh = meshes.add(Cuboid::default());
+    let point_mesh = MeshType::Sphere;
+    let stick_mesh = MeshType::Cuboid;
 
     // simulation dimensions
     let window_width = bounds.width;
@@ -79,9 +81,10 @@ pub fn spawn_cloth(
                 connection_mesh: Some(vec![stick_mesh.clone(); neighbors.len()]),
                 connection_material: Some(vec![stick_material.clone(); neighbors.len()]),
                 connection_size: Some(vec![STICK_SIZE; neighbors.len()]),
+                ..default()
             }
         })
         .collect();
 
-    spawner(mesh_network, commands);
+    spawner(mesh_network, commands, meshes, materials);
 }

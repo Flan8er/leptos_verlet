@@ -1,9 +1,12 @@
 use bevy::prelude::*;
 
 use crate::{
-    core::parameters::{MODIFICATION_RADIUS, Stick},
+    core::{
+        parameters::{MODIFICATION_RADIUS, Stick},
+        spawner::material_from_descriptor,
+    },
     plugins::{info::plugin::ActiveInfoTarget, modification::plugin::LineConnections},
-    prelude::Point,
+    prelude::{MaterialType, Point},
 };
 
 pub fn perge_info_target(
@@ -63,7 +66,8 @@ pub fn spawn_stick(
     points: &Query<(Entity, &Point)>,
     commands: &mut Commands,
     meshes: &mut ResMut<Assets<Mesh>>,
-    material: &Handle<StandardMaterial>,
+    materials: &mut ResMut<Assets<StandardMaterial>>,
+    material: MaterialType,
 ) {
     // Ideally there is only one line at any point
     let (_, mut line) = match line_query.get_single_mut() {
@@ -74,6 +78,7 @@ pub fn spawn_stick(
     };
 
     let stick_mesh = meshes.add(Cuboid::default());
+    let material = material_from_descriptor(&material, materials);
 
     // Find, optionally, the point that is at the event coordinates
     for (entity, point) in points {

@@ -12,7 +12,7 @@ use crate::{
         play_state::plugin::SimulationPlayState,
         schedule::plugin::SimulationCycle,
     },
-    prelude::Point,
+    prelude::{MaterialType, MeshType, Point},
 };
 
 pub struct ModificationPlugin;
@@ -128,8 +128,8 @@ pub fn handle_modification_event(
     bounds: Res<SimulationBounds>,
     camera: Query<(&Camera, &GlobalTransform), With<Camera3d>>,
 ) {
-    let point_material = materials.add(StandardMaterial::from(Color::WHITE));
-    let stick_material = materials.add(StandardMaterial::from(Color::srgba(1., 1., 1., 0.5)));
+    let point_material = MaterialType::Color([1., 1., 1., 1.]);
+    let stick_material = MaterialType::Color([1., 1., 1., 0.5]);
 
     for event in event_reader.read() {
         match event {
@@ -149,7 +149,13 @@ pub fn handle_modification_event(
                 match current_target.get() {
                     ModificationTarget::Point => {
                         let point = Point::new(view_plane_world_pos, view_plane_world_pos, false);
-                        point.spawn(&mut commands, &mut meshes, &point_material);
+                        point.spawn(
+                            &mut commands,
+                            &mut meshes,
+                            &mut materials,
+                            MeshType::Sphere,
+                            MaterialType::Color([1., 1., 1., 1.]),
+                        );
                     }
                     ModificationTarget::Line => spawn_stick(
                         ray,
@@ -157,7 +163,8 @@ pub fn handle_modification_event(
                         &params.p2(),
                         &mut commands,
                         &mut meshes,
-                        &stick_material,
+                        &mut materials,
+                        stick_material.clone(),
                     ),
                     ModificationTarget::Lock => {
                         lock_affected_points(ray, &mut params.p1(), &mut materials);
@@ -167,21 +174,19 @@ pub fn handle_modification_event(
                         spawn_square(
                             &mut commands,
                             &mut meshes,
+                            &mut materials,
                             point_material.clone(),
                             stick_material.clone(),
                             view_plane_world_pos,
                         );
                     }
                     ModificationTarget::SpawnRope => {
-                        let point_material = materials.add(StandardMaterial::from(Color::WHITE));
-                        let stick_material =
-                            materials.add(StandardMaterial::from(Color::srgba(1., 1., 1., 0.5)));
                         spawn_rope(
                             &mut commands,
                             &mut meshes,
                             &mut materials,
-                            point_material,
-                            stick_material,
+                            point_material.clone(),
+                            stick_material.clone(),
                             &bounds,
                             view_plane_world_pos,
                         );
@@ -189,15 +194,17 @@ pub fn handle_modification_event(
                     ModificationTarget::SpawnCloth => spawn_cloth(
                         &mut commands,
                         &mut meshes,
-                        &point_material,
-                        &stick_material,
+                        point_material.clone(),
+                        stick_material.clone(),
+                        &mut materials,
                         &bounds,
                     ),
                     ModificationTarget::SpawnCube => spawn_cube(
                         &mut commands,
                         &mut meshes,
-                        &point_material,
-                        &stick_material,
+                        &mut materials,
+                        point_material.clone(),
+                        stick_material.clone(),
                         &view_plane_world_pos,
                     ),
                     ModificationTarget::PointInfo => {

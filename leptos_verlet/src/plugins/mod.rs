@@ -1,3 +1,5 @@
+pub mod asset_loader;
+pub mod attachment;
 pub mod info;
 pub mod modification;
 pub mod play_state;

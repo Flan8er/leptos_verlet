@@ -1,6 +1,11 @@
+use std::hash::{DefaultHasher, Hash, Hasher};
+
 use bevy::prelude::*;
 
-use crate::core::parameters::{Point, Stick};
+use crate::{
+    core::parameters::{Point, Stick},
+    plugins::attachment::plugin::AttachmentPoint,
+};
 
 #[derive(Debug, Clone, Resource)]
 /// The buffer used to collect any mesh network reqested to be spawned.
@@ -52,6 +57,22 @@ pub struct SpawnNode {
     pub point_size: f32,
     /// The thickness of the connection.
     pub connection_size: Option<Vec<f32>>,
+    pub attachment: Option<String>,
+}
+impl Default for SpawnNode {
+    fn default() -> Self {
+        Self {
+            point: Point::new(Vec3::ZERO, Vec3::ZERO, false),
+            connection: None,
+            point_material: MaterialType::Color([1., 1., 1., 1.]),
+            connection_material: None,
+            point_mesh: MeshType::Sphere,
+            connection_mesh: None,
+            point_size: 0.025,
+            connection_size: None,
+            attachment: None,
+        }
+    }
 }
 
 #[derive(Clone, Debug, PartialEq)]
@@ -77,18 +98,26 @@ pub fn spawner(
     // Spawn all the nodes in the mesh network
     for spawn_node in mesh_network.iter() {
         // Spawn the point at the requested location
-        let spawned_point = commands
-            .spawn((
-                Mesh3d(mesh_from_descriptor(&spawn_node.point_mesh, meshes)),
-                MeshMaterial3d(material_from_descriptor(
-                    &spawn_node.point_material,
-                    materials,
-                )),
-                Transform::from_translation(spawn_node.point.position)
-                    .with_scale(Vec3::splat(spawn_node.point_size)),
-                spawn_node.point.clone(),
-            ))
-            .id();
+        let mut cmd = commands.spawn((
+            Mesh3d(mesh_from_descriptor(&spawn_node.point_mesh, meshes)),
+            MeshMaterial3d(material_from_descriptor(
+                &spawn_node.point_material,
+                materials,
+            )),
+            Transform::from_translation(spawn_node.point.position)
+                .with_scale(Vec3::splat(spawn_node.point_size)),
+            spawn_node.point.clone(),
+        ));
+
+        // If the point is marked as an attachment point, spawn that in as well
+        if let Some(attachment) = spawn_node.attachment.clone() {
+            let mut hasher = DefaultHasher::new();
+            attachment.hash(&mut hasher);
+
+            cmd.insert(AttachmentPoint(hasher.finish()));
+        }
+
+        let spawned_point = cmd.id();
 
         // Keep track of the entity and position for later possible insertion into a Stick
         spawned_entities.push(SpawnedEntity::new(spawn_node.point.position, spawned_point));
@@ -183,7 +212,7 @@ pub fn spawner(
     }
 }
 
-fn material_from_descriptor(
+pub fn material_from_descriptor(
     descriptor: &MaterialType,
     materials: &mut ResMut<Assets<StandardMaterial>>,
 ) -> Handle<StandardMaterial> {

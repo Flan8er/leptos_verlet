@@ -6,6 +6,7 @@ use crate::{
         parameters::{CAMERA_DISTANCE, CAMERA_FOV, HALF_CAMERA_HEIGHT},
     },
     objects::{rope::spawn_rope, square::spawn_square},
+    prelude::MaterialType,
 };
 
 pub struct StartupPlugin;
@@ -39,12 +40,13 @@ fn load_initial_particles(
     mut materials: ResMut<Assets<StandardMaterial>>,
     bounds: Res<SimulationBounds>,
 ) {
-    let point_material = materials.add(StandardMaterial::from(Color::WHITE));
-    let stick_material = materials.add(StandardMaterial::from(Color::srgba(1., 1., 1., 0.5)));
+    let point_material = MaterialType::Color([1., 1., 1., 1.]);
+    let stick_material = MaterialType::Color([1., 1., 1., 0.5]);
 
     spawn_square(
         &mut commands,
         &mut meshes,
+        &mut materials,
         point_material.clone(),
         stick_material.clone(),
         Vec3::new(0., *HALF_CAMERA_HEIGHT, 0.),

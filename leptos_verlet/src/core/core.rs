@@ -5,6 +5,8 @@ use leptos_use::{UseElementSizeReturn, use_element_size};
 
 use crate::{
     plugins::{
+        asset_loader::plugin::{AssetLoaderPlugin, LoadModelEvent},
+        attachment::plugin::AttachmentPlugin,
         info::plugin::{InfoPlugin, PointInfo, SetPointInfo},
         modification::plugin::ModificationPlugin,
         play_state::plugin::PlayStatePlugin,
@@ -28,8 +30,8 @@ pub fn VerletConfigProvider() -> impl IntoView {
 
     let (info_receiver, bevy_info_sender) = event_b2l::<PointInfo>();
     let (info_sender, bevy_info_receiver) = event_l2b::<SetPointInfo>();
-    // need to create a signal that listens and can pre populate the info modal with incoming event reads
-    // need a writer event to update bevy from info reads that targets the ActiveInfoTarget
+
+    let (asset_sender, bevy_asset_receiver) = event_l2b::<LoadModelEvent>();
 
     provide_context(state_sender);
     provide_context(target_sender);
@@ -38,6 +40,7 @@ pub fn VerletConfigProvider() -> impl IntoView {
     provide_context(spawn_sender);
     provide_context(info_receiver);
     provide_context(info_sender);
+    provide_context(asset_sender);
 
     provide_context(bevy_state_receiver);
     provide_context(bevy_target_receiver);
@@ -46,6 +49,7 @@ pub fn VerletConfigProvider() -> impl IntoView {
     provide_context(bevy_spawn_receiver);
     provide_context(bevy_info_sender);
     provide_context(bevy_info_receiver);
+    provide_context(bevy_asset_receiver);
 
     view! {
         <></>
@@ -67,6 +71,7 @@ pub fn VerletCanvas(parent_element: NodeRef<leptos::html::Div>) -> impl IntoView
     let bevy_spawn_receiver = expect_context::<BevyEventReceiver<SpawnRequest>>();
     let bevy_info_sender = expect_context::<BevyEventSender<PointInfo>>();
     let bevy_info_receiver = expect_context::<BevyEventReceiver<SetPointInfo>>();
+    let bevy_asset_receiver = expect_context::<BevyEventReceiver<LoadModelEvent>>();
 
     let UseElementSizeReturn { width, height } = use_element_size(parent_element);
     Effect::new(move |_| {
@@ -85,7 +90,8 @@ pub fn VerletCanvas(parent_element: NodeRef<leptos::html::Div>) -> impl IntoView
                     bevy_element_size_receiver,
                     bevy_spawn_receiver,
                     bevy_info_sender,
-                    bevy_info_receiver
+                    bevy_info_receiver,
+                    bevy_asset_receiver
                 )
             }
         />
@@ -100,32 +106,37 @@ fn init_bevy_app(
     spawn_receiver: BevyEventReceiver<SpawnRequest>,
     info_sender: BevyEventSender<PointInfo>,
     info_receiver: BevyEventReceiver<SetPointInfo>,
+    asset_receiver: BevyEventReceiver<LoadModelEvent>,
 ) -> App {
     let mut app = App::new();
-    app.add_plugins(DefaultPlugins.set(WindowPlugin {
-        primary_window: Some(Window {
-            canvas: Some("#bevy_canvas".into()),
-            transparent: true,
-            decorations: false,
-            fit_canvas_to_parent: true,
+
+    app.add_plugins(AssetLoaderPlugin)
+        .add_plugins(DefaultPlugins.set(WindowPlugin {
+            primary_window: Some(Window {
+                canvas: Some("#bevy_canvas".into()),
+                transparent: true,
+                decorations: false,
+                fit_canvas_to_parent: true,
+                ..default()
+            }),
             ..default()
-        }),
-        ..default()
-    }))
-    .import_event_from_leptos(state_receiver)
-    .import_event_from_leptos(target_receiver)
-    .import_event_from_leptos(event_receiver)
-    .import_event_from_leptos(window_resize_receiver)
-    .import_event_from_leptos(spawn_receiver)
-    .export_event_to_leptos(info_sender)
-    .import_event_from_leptos(info_receiver)
-    .insert_resource(ClearColor(Color::NONE))
-    .add_plugins(PlayStatePlugin)
-    .add_plugins(SchedulePlugin)
-    .add_plugins(ModificationPlugin)
-    .add_plugins(InfoPlugin)
-    .add_plugins(SimulationPlugin)
-    .add_plugins(StartupPlugin)
-    .add_plugins(RenderPlugin);
+        }))
+        .import_event_from_leptos(state_receiver)
+        .import_event_from_leptos(target_receiver)
+        .import_event_from_leptos(event_receiver)
+        .import_event_from_leptos(window_resize_receiver)
+        .import_event_from_leptos(spawn_receiver)
+        .export_event_to_leptos(info_sender)
+        .import_event_from_leptos(info_receiver)
+        .import_event_from_leptos(asset_receiver)
+        .insert_resource(ClearColor(Color::NONE))
+        .add_plugins(PlayStatePlugin)
+        .add_plugins(SchedulePlugin)
+        .add_plugins(ModificationPlugin)
+        .add_plugins(InfoPlugin)
+        .add_plugins(SimulationPlugin)
+        .add_plugins(StartupPlugin)
+        .add_plugins(RenderPlugin)
+        .add_plugins(AttachmentPlugin);
     app
 }

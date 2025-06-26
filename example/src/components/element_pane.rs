@@ -6,6 +6,9 @@ use leptos_verlet::prelude::*;
 pub fn ElementPane(active_modifier: RwSignal<ModificationTarget>) -> impl IntoView {
     let target_sender = expect_context::<LeptosEventSender<ModificationTarget>>();
 
+    // Spawning a custom mesh
+    model_loader("/static/monkey.glb", "monkey.glb", 0);
+
     let modification_point = {
         let sender = target_sender.clone();
         move |_| {
@@ -158,9 +161,10 @@ fn LeptosSpawner(active_modifier: RwSignal<ModificationTarget>) -> impl IntoView
         connection_mesh: Some(vec![stick_mesh.clone(), stick_mesh.clone()]),
         point_size: point_size,
         connection_size: Some(vec![stick_size, stick_size]),
+        ..default()
     };
     let bottom_right_node = SpawnNode {
-        point: Point::new(bottom_right, bottom_right, false),
+        point: Point::new(bottom_right, bottom_right + 0.5, false),
         connection: Some(vec![bottom_left, top_right, top_left]),
         point_material: point_material.clone(),
         connection_material: Some(vec![
@@ -176,6 +180,7 @@ fn LeptosSpawner(active_modifier: RwSignal<ModificationTarget>) -> impl IntoView
         ]),
         point_size: point_size,
         connection_size: Some(vec![stick_size, stick_size, stick_size]),
+        attachment: Some(String::from("monkey.glb")), // ..default()
     };
     let top_right_node = SpawnNode {
         point: Point::new(top_right, top_right, false),
@@ -186,6 +191,7 @@ fn LeptosSpawner(active_modifier: RwSignal<ModificationTarget>) -> impl IntoView
         connection_mesh: Some(vec![stick_mesh.clone(), stick_mesh.clone()]),
         point_size: point_size,
         connection_size: Some(vec![stick_size, stick_size]),
+        ..default()
     };
     let top_left_node = SpawnNode {
         point: Point::new(top_left, top_left, false),
@@ -204,6 +210,7 @@ fn LeptosSpawner(active_modifier: RwSignal<ModificationTarget>) -> impl IntoView
         ]),
         point_size: point_size,
         connection_size: Some(vec![stick_size, stick_size, stick_size]),
+        ..default()
     };
     let mesh_network = vec![
         bottom_left_node,
