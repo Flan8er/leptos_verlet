@@ -4,7 +4,7 @@ use leptos_verlet::prelude::*;
 
 #[component]
 pub fn ElementPane(active_modifier: RwSignal<ModificationTarget>) -> impl IntoView {
-    let target_sender = expect_context::<LeptosEventSender<ModificationTarget>>();
+    let target_sender = expect_context::<ModificationTargetSender>();
     let spawn_monkey = RwSignal::new(false);
 
     // Spawning a custom mesh when requested
@@ -145,7 +145,7 @@ where
 
 #[component]
 fn LeptosSpawner(active_modifier: RwSignal<ModificationTarget>) -> impl IntoView {
-    let spawn_request = expect_context::<LeptosEventSender<SpawnRequest>>();
+    let spawn_request = expect_context::<SpawnSender>();
 
     let square_size = 0.45;
     let point_size = 0.025;

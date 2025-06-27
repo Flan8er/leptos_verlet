@@ -7,11 +7,12 @@ use leptos_verlet::prelude::*;
 
 #[component]
 pub fn InfoModal(active_modifier: RwSignal<ModificationTarget>) -> impl IntoView {
-    let point = expect_context::<LeptosEventReceiver<PointInfo>>();
-    let point_sender = expect_context::<LeptosEventSender<SetPointInfo>>();
+    let point = expect_context::<PointInfoReceiver>();
+    let point_sender = expect_context::<PointInfoSender>();
     let el = NodeRef::<Div>::new();
 
     // `style` is a helper string "left: {x}px; top: {y}px;"
+    #[allow(unused_variables)]
     let UseDraggableReturn { x, y, style, .. } = use_draggable_with_options(
         el,
         UseDraggableOptions::default().initial_value(Position { x: 40.0, y: 40.0 }),

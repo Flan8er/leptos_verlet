@@ -5,8 +5,8 @@ use leptos_verlet::prelude::*;
 
 #[component]
 pub fn ControlPane(active_modifier: RwSignal<ModificationTarget>) -> impl IntoView {
-    let state_sender = expect_context::<LeptosEventSender<SimulationPlayStateRequest>>();
-    let target_sender = expect_context::<LeptosEventSender<ModificationTarget>>();
+    let state_sender = expect_context::<PlayStateSender>();
+    let target_sender = expect_context::<ModificationTargetSender>();
 
     let play_sim = {
         let state_sender = state_sender.clone();

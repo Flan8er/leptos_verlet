@@ -49,7 +49,7 @@ pub fn App() -> impl IntoView {
 
 ## Custom Meshes
 
-In the latest ^1.2 update, a new function is exposed to allow custom meshes to be imported and attached to a simulation body. The mesh will track, follow, and reorient relative to whatever body it's attached to.
+In the latest ^1.2 update, a new function is exposed to allow custom meshes to be imported and attached to a simulation Point. The mesh will track, follow, and reorient relative to whatever Point it's attached to.
 
 ```rust
 // Imports and spawns the mesh into the simulation
@@ -63,7 +63,7 @@ SpawnNode {
 }
 ```
 
-The SpawnNode type also takes in an extra argument: "attachment". This is an optional String where the string is the same model_name used in the model_loader function ("monkey.glb" in the above code). This essentially tells the mesh to follow whatever point it is attached to.
+The SpawnNode type also takes in an extra argument: "attachment". This is an optional String where the value is the same model_name used in the model_loader function ("monkey.glb" in the above code). This essentially tells the mesh to follow whatever point it is attached to.
 
 ![Screenshot 2025-06-26 at 1 29 25 PM](https://github.com/user-attachments/assets/bbfeb4fc-a994-4049-829a-996a6a78fab5)
 
@@ -105,7 +105,7 @@ The desired vertices of the shape are constructed (below the initial velocity is
 ```rust
 use leptos_verlet::prelude::*;
 
-let spawn_request = expect_context::<LeptosEventSender<SpawnRequest>>();
+let spawn_request = expect_context::<SpawnSender>();
 
 let square_size = 0.45;
 let point_size = 0.025;

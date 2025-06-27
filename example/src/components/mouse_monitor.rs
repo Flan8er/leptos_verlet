@@ -1,4 +1,4 @@
-use leptos::{logging::log, prelude::*};
+use leptos::prelude::*;
 use leptos_use::{UseWindowSizeReturn, use_window_size};
 use web_sys::wasm_bindgen::JsCast;
 
@@ -6,7 +6,7 @@ use leptos_verlet::prelude::*;
 
 #[component]
 pub fn MouseMonitor(active_modifier: RwSignal<ModificationTarget>) -> impl IntoView {
-    let event_sender = expect_context::<LeptosEventSender<ModifyEventType>>();
+    let event_sender = expect_context::<ModificationEventSender>();
     let UseWindowSizeReturn { width, height } = use_window_size();
 
     let left_click_action = {

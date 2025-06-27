@@ -1,3 +1,4 @@
+mod aliases;
 mod core;
 mod objects;
 mod plugins;
@@ -19,6 +20,12 @@ pub mod prelude {
     };
     pub use bevy::math::Vec3;
     pub use bevy::prelude::default;
+
+    pub use crate::aliases::{
+        AssetSender, ContainerSizeSender, ModificationEventSender, ModificationTargetSender,
+        PlayStateSender, PointInfoReceiver, PointInfoSender, SpawnSender,
+    };
+
     pub use leptos_bevy_canvas::prelude::{
         LeptosChannelEventSender, LeptosEventReceiver, LeptosEventSender,
     };
