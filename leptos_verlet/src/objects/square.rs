@@ -2,7 +2,7 @@ use bevy::prelude::*;
 
 use crate::{
     core::{
-        parameters::{POINT_SIZE, Point, STICK_SIZE},
+        parameters::{Point, SimulationSettings},
         spawner::{SpawnNode, spawner},
     },
     prelude::{MaterialType, MeshType},
@@ -17,6 +17,7 @@ pub fn spawn_square(
     point_material: MaterialType,
     stick_material: MaterialType,
     position: Vec3,
+    sim_settings: &Res<SimulationSettings>,
 ) {
     let stick_mesh = MeshType::Cuboid;
     let point_mesh = MeshType::Sphere;
@@ -53,7 +54,11 @@ pub fn spawn_square(
             // ... and exactly one mesh / material / size per connection
             let connection_mesh = Some(vec![stick_mesh.clone(); neighbors.len()]);
             let connection_material = Some(vec![stick_material.clone(); neighbors.len()]);
-            let connection_size = Some(vec![STICK_SIZE; neighbors.len()]);
+            let connection_size = Some(vec![
+                sim_settings.default_geometry_stick_size;
+                neighbors.len()
+            ]);
+            let connection_scale = Some(vec![Vec3::ONE; neighbors.len()]);
 
             SpawnNode {
                 point: Point::new(corner_pos, corner_pos, false),
@@ -62,8 +67,9 @@ pub fn spawn_square(
                 connection_material,
                 point_mesh: point_mesh.clone(),
                 connection_mesh,
-                point_size: POINT_SIZE,
+                point_size: sim_settings.default_geometry_point_size,
                 connection_size,
+                connection_scale,
                 ..default()
             }
         })

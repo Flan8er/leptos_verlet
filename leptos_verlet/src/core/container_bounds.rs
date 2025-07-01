@@ -1,6 +1,6 @@
 use bevy::prelude::*;
 
-use crate::core::parameters::{CAMERA_DISTANCE, HALF_CAMERA_HEIGHT};
+use crate::core::parameters::SimulationSettings;
 
 #[derive(Event, Clone)]
 pub struct LeptosResize {
@@ -8,32 +8,16 @@ pub struct LeptosResize {
     pub height: f32,
 }
 
-#[derive(Resource)]
-pub struct SimulationBounds {
-    pub width: f32,
-    pub height: f32,
-    pub depth: f32,
-}
-impl Default for SimulationBounds {
-    fn default() -> Self {
-        Self {
-            width: *HALF_CAMERA_HEIGHT * 2.,
-            height: *HALF_CAMERA_HEIGHT * 2.,
-            depth: CAMERA_DISTANCE,
-        }
-    }
-}
-
 pub fn window_listener(
     mut window_event: EventReader<LeptosResize>,
-    mut window_res: ResMut<SimulationBounds>,
+    mut sim_settings: ResMut<SimulationSettings>,
 ) {
     for event in window_event.read() {
         let width = event.width;
         let height = event.height;
 
-        let sim_width = (window_res.height * width) / height;
+        let sim_width = (sim_settings.simulation_bounds.y.1 * width) / height;
 
-        window_res.width = sim_width;
+        sim_settings.simulation_bounds.x.1 = sim_width;
     }
 }

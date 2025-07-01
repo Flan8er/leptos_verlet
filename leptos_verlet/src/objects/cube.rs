@@ -2,7 +2,7 @@ use bevy::prelude::*;
 
 use crate::{
     core::{
-        parameters::{POINT_SIZE, Point, STICK_SIZE},
+        parameters::{Point, SimulationSettings},
         spawner::{SpawnNode, spawner},
     },
     prelude::{MaterialType, MeshType},
@@ -17,6 +17,7 @@ pub fn spawn_cube(
     point_material: MaterialType,
     stick_material: MaterialType,
     center: &Vec3,
+    sim_settings: &Res<SimulationSettings>,
 ) {
     // pick meshes
     let point_mesh = MeshType::Sphere;
@@ -90,10 +91,11 @@ pub fn spawn_cube(
                 connection: Some(neigh.iter().map(|&j| corners[j]).collect()),
                 point_material: point_material.clone(),
                 point_mesh: point_mesh.clone(),
-                point_size: POINT_SIZE,
+                point_size: sim_settings.default_geometry_point_size,
                 connection_mesh: Some(vec![stick_mesh.clone(); neigh.len()]),
                 connection_material: Some(vec![stick_material.clone(); neigh.len()]),
-                connection_size: Some(vec![STICK_SIZE; neigh.len()]),
+                connection_size: Some(vec![sim_settings.default_geometry_stick_size; neigh.len()]),
+                connection_scale: Some(vec![Vec3::ONE; neigh.len()]),
                 ..default()
             }
         })

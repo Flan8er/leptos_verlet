@@ -1,13 +1,13 @@
 use bevy::prelude::*;
 
 use crate::{
-    core::{container_bounds::SimulationBounds, parameters::Stick},
+    core::parameters::{SimulationSettings, Stick},
     objects::{cloth::spawn_cloth, cube::spawn_cube, rope::spawn_rope, square::spawn_square},
     plugins::{
         info::plugin::ActiveInfoTarget,
         modification::utils::{
-            cut_sticks, lock_affected_points, perge_info_target, point_info, purge_line,
-            ray_coords_at, spawn_stick,
+            cut_sticks, grab_point, lock_affected_points, perge_info_target, point_info,
+            purge_line, ray_coords_at, spawn_stick,
         },
         play_state::plugin::SimulationPlayState,
         schedule::plugin::SimulationCycle,
@@ -22,7 +22,7 @@ impl Plugin for ModificationPlugin {
             Update,
             (handle_target_change, handle_modification_event)
                 .chain()
-                .in_set(SimulationCycle::Preparation),
+                .in_set(SimulationCycle::Preparation1),
         );
     }
 }
@@ -80,6 +80,7 @@ pub enum ModificationTarget {
     /// Right click on a point to delete it.
     Delete,
     PointInfo,
+    Grab,
     #[default]
     None,
 }
@@ -122,10 +123,11 @@ pub fn handle_modification_event(
         Query<(&mut MeshMaterial3d<StandardMaterial>, &mut Point)>,
         Query<(Entity, &Point)>,
         Query<(Entity, &Point), With<ActiveInfoTarget>>,
+        Query<(Entity, &mut Point)>,
     )>,
     mut next_target: ResMut<NextState<ModificationTarget>>,
     mut line_query: Query<(Entity, &mut LineConnections)>,
-    bounds: Res<SimulationBounds>,
+    sim_settings: Res<SimulationSettings>,
     camera: Query<(&Camera, &GlobalTransform), With<Camera3d>>,
 ) {
     let point_material = MaterialType::Color([1., 1., 1., 1.]);
@@ -165,9 +167,15 @@ pub fn handle_modification_event(
                         &mut meshes,
                         &mut materials,
                         stick_material.clone(),
+                        sim_settings.interaction_radius,
                     ),
                     ModificationTarget::Lock => {
-                        lock_affected_points(ray, &mut params.p1(), &mut materials);
+                        lock_affected_points(
+                            ray,
+                            &mut params.p1(),
+                            &mut materials,
+                            sim_settings.interaction_radius,
+                        );
                     }
                     ModificationTarget::Cut => next_target.set(ModificationTarget::Cutting),
                     ModificationTarget::SpawnSquare => {
@@ -178,6 +186,7 @@ pub fn handle_modification_event(
                             point_material.clone(),
                             stick_material.clone(),
                             view_plane_world_pos,
+                            &sim_settings,
                         );
                     }
                     ModificationTarget::SpawnRope => {
@@ -187,7 +196,7 @@ pub fn handle_modification_event(
                             &mut materials,
                             point_material.clone(),
                             stick_material.clone(),
-                            &bounds,
+                            &sim_settings,
                             view_plane_world_pos,
                         );
                     }
@@ -197,7 +206,7 @@ pub fn handle_modification_event(
                         point_material.clone(),
                         stick_material.clone(),
                         &mut materials,
-                        &bounds,
+                        &sim_settings,
                     ),
                     ModificationTarget::SpawnCube => spawn_cube(
                         &mut commands,
@@ -206,11 +215,21 @@ pub fn handle_modification_event(
                         point_material.clone(),
                         stick_material.clone(),
                         &view_plane_world_pos,
+                        &sim_settings,
                     ),
                     ModificationTarget::PointInfo => {
                         // perge existing info targets
                         perge_info_target(&params.p3(), &mut commands);
-                        point_info(ray, &params.p2(), &mut commands)
+                        point_info(
+                            ray,
+                            &params.p2(),
+                            &mut commands,
+                            sim_settings.interaction_radius,
+                        )
+                    }
+                    ModificationTarget::None => {
+                        // If there's no target and you left click - default to grabbing the point
+                        next_target.set(ModificationTarget::Grab)
                     }
                     _ => (),
                 }
@@ -226,9 +245,15 @@ pub fn handle_modification_event(
                 let ray = relative_pos.create_ray(camera, camera_transform);
 
                 match current_target.get() {
-                    ModificationTarget::Cutting => {
-                        cut_sticks(ray, &mut stick_query, &params.p0(), &mut commands)
-                    }
+                    ModificationTarget::Cutting => cut_sticks(
+                        ray,
+                        &mut stick_query,
+                        &params.p0(),
+                        &mut commands,
+                        sim_settings.interaction_radius,
+                    ),
+                    ModificationTarget::Grab => grab_point(params.p4(), ray),
+
                     _ => (),
                 }
             }
@@ -238,6 +263,7 @@ pub fn handle_modification_event(
                         // When mouse is released, stop tracking cuts
                         next_target.set(ModificationTarget::Cut)
                     }
+                    ModificationTarget::Grab => next_target.set(ModificationTarget::None),
                     _ => (),
                 }
             }

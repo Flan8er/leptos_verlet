@@ -2,8 +2,7 @@ use bevy::prelude::*;
 
 use crate::{
     core::{
-        container_bounds::SimulationBounds,
-        parameters::{POINT_SIZE, Point, STICK_SIZE},
+        parameters::{Point, SimulationSettings},
         spawner::{SpawnNode, spawner},
     },
     prelude::{MaterialType, MeshType},
@@ -20,7 +19,7 @@ pub fn spawn_rope(
     materials: &mut ResMut<Assets<StandardMaterial>>,
     point_material: MaterialType,
     stick_material: MaterialType,
-    bounds: &Res<SimulationBounds>,
+    sim_settings: &Res<SimulationSettings>,
     position: Vec3,
 ) {
     let point_mesh = MeshType::Sphere;
@@ -42,7 +41,7 @@ pub fn spawn_rope(
             prev + Vec3::new(-STICK_LENGTH * theta.sin(), STICK_LENGTH * theta.cos(), 0.0);
 
         // clamp X into [–width/2, +width/2]
-        let half_w = bounds.width / 2.0;
+        let half_w = sim_settings.simulation_bounds.x.1 / 2.0;
         if next.x <= -half_w {
             let cx = -half_w + 0.001;
             let dy = cx - next.x;
@@ -79,10 +78,14 @@ pub fn spawn_rope(
                 point_material.clone()
             },
             point_mesh: point_mesh.clone(),
-            point_size: POINT_SIZE,
+            point_size: sim_settings.default_geometry_point_size,
             connection_mesh: Some(vec![stick_mesh.clone(); neighbors.len()]),
             connection_material: Some(vec![stick_material.clone(); neighbors.len()]),
-            connection_size: Some(vec![STICK_SIZE; neighbors.len()]),
+            connection_size: Some(vec![
+                sim_settings.default_geometry_stick_size;
+                neighbors.len()
+            ]),
+            connection_scale: Some(vec![Vec3::ONE; neighbors.len()]),
             ..default()
         });
     }

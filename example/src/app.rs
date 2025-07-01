@@ -14,7 +14,13 @@ pub fn App() -> impl IntoView {
     let active_modifier: RwSignal<ModificationTarget> = RwSignal::new(ModificationTarget::None);
 
     view! {
-        <VerletConfigProvider/>
+        <VerletConfigProvider
+            simulation_settings=SimulationSettings{
+                jerk_damping: 0.5,
+                simulation_bounds: SimulationBounds::new(true, true, true),
+                ..default()
+            }
+        />
 
         <main class="w-screen h-screen flex items-center justify-center overflow-hidden relative">
             <ElementPane active_modifier/>

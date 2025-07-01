@@ -12,7 +12,7 @@ use std::{
     path::Path,
 };
 
-use crate::plugins::attachment::plugin::AttachmentPoint;
+use crate::plugins::attachment::plugin::{AttachmentPoint, MeshOffset};
 
 #[derive(Resource)]
 struct MemoryDir {
@@ -24,6 +24,9 @@ pub struct LoadModelEvent {
     pub name: String,
     pub bytes: Vec<u8>,
     pub scene_index: usize,
+    pub translation: Option<Vec3>,
+    pub rotation: Option<Quat>,
+    pub scale: Option<f32>,
 }
 
 pub struct AssetLoaderPlugin;
@@ -55,6 +58,9 @@ fn load_model_system(
         name,
         bytes,
         scene_index,
+        translation: offset_translation,
+        rotation: offset_rotation,
+        scale,
     } in events.read()
     {
         // insert the bytes under the given filename
@@ -68,12 +74,47 @@ fn load_model_system(
         let mut hasher = DefaultHasher::new();
         name.hash(&mut hasher);
 
-        commands.spawn((
+        let mut spawned_mesh = commands.spawn((
             SceneRoot(handle),
-            Transform::from_xyz(0.0, 0.0, 0.0),
+            Transform {
+                translation: Vec3::new(500.0, 500.0, 500.0),
+                scale: Vec3::splat(scale.unwrap_or(1.0)),
+                ..default()
+            },
             Visibility::default(),
             AttachmentPoint(hasher.finish()),
         ));
+
+        match (offset_translation, offset_rotation) {
+            (Some(translation), Some(rotation)) => {
+                spawned_mesh.insert(MeshOffset {
+                    translation: translation.clone(),
+                    rotation: rotation.clone(),
+                    anchors: [Vec3::ZERO, Vec3::ZERO, Vec3::ZERO],
+                });
+            }
+            (Some(translation), None) => {
+                spawned_mesh.insert(MeshOffset {
+                    translation: translation.clone(),
+                    rotation: Quat::IDENTITY,
+                    anchors: [Vec3::ZERO, Vec3::ZERO, Vec3::ZERO],
+                });
+            }
+            (None, Some(rotation)) => {
+                spawned_mesh.insert(MeshOffset {
+                    translation: Vec3::ZERO,
+                    rotation: rotation.clone(),
+                    anchors: [Vec3::ZERO, Vec3::ZERO, Vec3::ZERO],
+                });
+            }
+            _ => {
+                spawned_mesh.insert(MeshOffset {
+                    translation: Vec3::ZERO,
+                    rotation: Quat::IDENTITY,
+                    anchors: [Vec3::ZERO, Vec3::ZERO, Vec3::ZERO],
+                });
+            }
+        }
     }
 }
 
@@ -81,6 +122,9 @@ async fn fetch_and_send_model(
     url: String,
     model_name: String,
     scene_index: usize,
+    offset_translation: Option<Vec3>,
+    offset_rotation: Option<Quat>,
+    scale: Option<f32>,
     sender: LeptosEventSender<LoadModelEvent>,
 ) {
     let resp = match Request::get(&url).send().await {
@@ -104,6 +148,9 @@ async fn fetch_and_send_model(
             name: model_name,
             bytes,
             scene_index,
+            translation: offset_translation,
+            rotation: offset_rotation,
+            scale,
         })
         .ok();
 }
@@ -135,13 +182,41 @@ where
     let asset_path: String = asset_path.into();
     let model_name: String = model_name.into();
 
-    // let ctx = expect_context::<MyContext>(cx);
     let event_sender = expect_context::<LeptosEventSender<LoadModelEvent>>();
 
     spawn_local(fetch_and_send_model(
         asset_path,
         model_name,
         scene_index,
+        None,
+        None,
+        None,
+        event_sender,
+    ));
+}
+
+pub fn model_loader_with_options<T>(
+    asset_path: T,
+    model_name: T,
+    scene_index: usize,
+    offset_translation: Option<Vec3>,
+    offset_rotation: Option<Quat>,
+    scale: Option<f32>,
+) where
+    T: Into<String>,
+{
+    let asset_path: String = asset_path.into();
+    let model_name: String = model_name.into();
+
+    let event_sender = expect_context::<LeptosEventSender<LoadModelEvent>>();
+
+    spawn_local(fetch_and_send_model(
+        asset_path,
+        model_name,
+        scene_index,
+        offset_translation,
+        offset_rotation,
+        scale,
         event_sender,
     ));
 }

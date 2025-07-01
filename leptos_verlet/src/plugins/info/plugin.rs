@@ -41,7 +41,7 @@ impl Plugin for InfoPlugin {
             Update,
             (receive_leptos_update, send_leptos_update)
                 .chain()
-                .in_set(SimulationCycle::Preparation),
+                .in_set(SimulationCycle::Preparation1),
         );
     }
 }

@@ -1,10 +1,8 @@
 use bevy::prelude::*;
+use web_sys::wasm_bindgen::JsValue;
 
 use crate::{
-    core::{
-        parameters::{MODIFICATION_RADIUS, Stick},
-        spawner::material_from_descriptor,
-    },
+    core::{parameters::Stick, spawner::material_from_descriptor},
     plugins::{info::plugin::ActiveInfoTarget, modification::plugin::LineConnections},
     prelude::{MaterialType, Point},
 };
@@ -18,9 +16,14 @@ pub fn perge_info_target(
     }
 }
 
-pub fn point_info(cast_ray: Ray3d, point_query: &Query<(Entity, &Point)>, commands: &mut Commands) {
+pub fn point_info(
+    cast_ray: Ray3d,
+    point_query: &Query<(Entity, &Point)>,
+    commands: &mut Commands,
+    modification_radius: f32,
+) {
     for (entity, point) in point_query.iter() {
-        if point_on_ray(&cast_ray, point.position, MODIFICATION_RADIUS) {
+        if point_on_ray(&cast_ray, point.position, modification_radius) {
             commands.entity(entity).insert(ActiveInfoTarget);
         }
     }
@@ -41,11 +44,12 @@ pub fn lock_affected_points(
     cast_ray: Ray3d,
     points: &mut Query<(&mut MeshMaterial3d<StandardMaterial>, &mut Point)>,
     materials: &mut ResMut<Assets<StandardMaterial>>,
+    modification_radius: f32,
 ) {
     // Loop through all the spawned points that should be analyzed for selection
     for (mut material, mut pt) in points {
         // Check to see if the point lies on the ray
-        if point_on_ray(&cast_ray, pt.position, MODIFICATION_RADIUS) {
+        if point_on_ray(&cast_ray, pt.position, modification_radius) {
             pt.locked = !pt.locked;
 
             let color = if pt.locked {
@@ -68,6 +72,7 @@ pub fn spawn_stick(
     meshes: &mut ResMut<Assets<Mesh>>,
     materials: &mut ResMut<Assets<StandardMaterial>>,
     material: MaterialType,
+    modification_radius: f32,
 ) {
     // Ideally there is only one line at any point
     let (_, mut line) = match line_query.get_single_mut() {
@@ -82,7 +87,7 @@ pub fn spawn_stick(
 
     // Find, optionally, the point that is at the event coordinates
     for (entity, point) in points {
-        if point_on_ray(&cast_ray, point.position, MODIFICATION_RADIUS) {
+        if point_on_ray(&cast_ray, point.position, modification_radius) {
             // Attach this entity to one of the arms of the LineConntection
             match (line.p0, line.p1) {
                 (None, None) => {
@@ -95,7 +100,9 @@ pub fn spawn_stick(
                     line.p0 = Some(entity);
                 }
                 (Some(_), Some(_)) => {
-                    panic!("Err: Line connection wasnt cleaned up.");
+                    web_sys::console::log_1(&JsValue::from_str(
+                        "Err: Line connection wasnt cleaned up.",
+                    ));
                 }
             }
 
@@ -140,15 +147,16 @@ pub fn cut_sticks(
     sticks: &mut Query<(Entity, &mut Stick)>,
     points: &Query<&Point>,
     commands: &mut Commands,
+    modification_radius: f32,
 ) {
     for (entity, stick) in sticks {
         if let Ok([p1, p2]) = points.get_many([stick.point1, stick.point2]) {
             // Create the list of points between this sticks endpoints
             let sample_points =
-                sample_points_along_line(p1.position, p2.position, MODIFICATION_RADIUS);
+                sample_points_along_line(p1.position, p2.position, modification_radius);
             for point in sample_points {
                 // Check to see if the point lies on the ray
-                if point_on_ray(&cast_ray, point, MODIFICATION_RADIUS) {
+                if point_on_ray(&cast_ray, point, modification_radius) {
                     // Remove this line from the simulation
                     commands.entity(entity).despawn();
                     break;
@@ -215,4 +223,49 @@ pub fn point_on_ray(ray: &Ray3d, point: Vec3, tolerance: f32) -> bool {
 
     // Check how far the point is from its closest point on the ray.
     (projected - point).length_squared() <= tolerance * tolerance
+}
+
+// check for some modification distance maybe
+pub fn grab_point(mut points: Query<(Entity, &mut Point)>, ray: Ray3d) {
+    // Find the Entity of the closest point
+    let closest_ent = {
+        let dir: Vec3 = ray.direction.into();
+        let mut best: Option<(Entity, f32)> = None;
+
+        for (entity, point) in points.iter_mut() {
+            if point.locked {
+                continue;
+            }
+
+            let v = point.position - ray.origin;
+            let t = v.dot(dir);
+            if t < 0.0 {
+                continue;
+            }
+
+            let proj = ray.origin + dir * t;
+            let dist2 = (proj - point.position).length_squared();
+
+            // init or replace if this one is closer
+            match best {
+                None => best = Some((entity, dist2)),
+                Some((_, best_dist2)) if dist2 < best_dist2 => best = Some((entity, dist2)),
+                _ => {}
+            }
+        }
+
+        best.map(|(entity, _)| entity)
+    };
+
+    // Mutate the closest point
+    if let Some(ent) = closest_ent {
+        if let Ok((_, mut pt)) = points.get_mut(ent) {
+            let new_coords = match ray_coords_at(ray, 0.) {
+                Some(coords) => coords,
+                None => return,
+            };
+            pt.position = new_coords;
+            pt.prev_position = new_coords;
+        }
+    }
 }

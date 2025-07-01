@@ -207,6 +207,9 @@ let spawn_custom = {
   - Simulation bounds
   - Camera location / orientation
   - Rendering optimization
+  - Converge steps
+  - Lighting
+  - ... General bevy settings within reason
 - Ideal gas law: soft bodies with constant (relatively) volumes
 - Migration to Leptos 0.8 and Bevy 0.16
 

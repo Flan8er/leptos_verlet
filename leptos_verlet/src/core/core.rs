@@ -4,6 +4,7 @@ use leptos_bevy_canvas::prelude::*;
 use leptos_use::{UseElementSizeReturn, use_element_size};
 
 use crate::{
+    core::parameters::SimulationSettings,
     plugins::{
         asset_loader::plugin::{AssetLoaderPlugin, LoadModelEvent},
         attachment::plugin::AttachmentPlugin,
@@ -21,7 +22,9 @@ use crate::{
 };
 
 #[component]
-pub fn VerletConfigProvider() -> impl IntoView {
+pub fn VerletConfigProvider(
+    #[prop(optional)] simulation_settings: SimulationSettings,
+) -> impl IntoView {
     let (state_sender, bevy_state_receiver) = event_l2b::<SimulationPlayStateRequest>();
     let (target_sender, bevy_target_receiver) = event_l2b::<ModificationTarget>();
     let (event_sender, bevy_event_receiver) = event_l2b::<ModifyEventType>();
@@ -50,6 +53,8 @@ pub fn VerletConfigProvider() -> impl IntoView {
     provide_context(bevy_info_sender);
     provide_context(bevy_info_receiver);
     provide_context(bevy_asset_receiver);
+
+    provide_context(simulation_settings);
 
     view! {
         <></>
@@ -80,6 +85,8 @@ pub fn VerletCanvas(parent_element: NodeRef<leptos::html::Div>) -> impl IntoView
         element_size_sender.send(LeptosResize { width, height })
     });
 
+    let simulation_settings = expect_context::<SimulationSettings>();
+
     view! {
         <BevyCanvas
             init=move || {
@@ -91,7 +98,8 @@ pub fn VerletCanvas(parent_element: NodeRef<leptos::html::Div>) -> impl IntoView
                     bevy_spawn_receiver,
                     bevy_info_sender,
                     bevy_info_receiver,
-                    bevy_asset_receiver
+                    bevy_asset_receiver,
+                    simulation_settings
                 )
             }
         />
@@ -107,6 +115,7 @@ fn init_bevy_app(
     info_sender: BevyEventSender<PointInfo>,
     info_receiver: BevyEventReceiver<SetPointInfo>,
     asset_receiver: BevyEventReceiver<LoadModelEvent>,
+    simulation_settings: SimulationSettings,
 ) -> App {
     let mut app = App::new();
 
@@ -130,6 +139,7 @@ fn init_bevy_app(
         .import_event_from_leptos(info_receiver)
         .import_event_from_leptos(asset_receiver)
         .insert_resource(ClearColor(Color::NONE))
+        .insert_resource(simulation_settings)
         .add_plugins(PlayStatePlugin)
         .add_plugins(SchedulePlugin)
         .add_plugins(ModificationPlugin)

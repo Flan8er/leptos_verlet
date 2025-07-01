@@ -4,9 +4,11 @@ use crate::plugins::play_state::plugin::SimulationPlayState;
 
 #[derive(Debug, Hash, PartialEq, Eq, Clone, SystemSet)]
 pub enum SimulationCycle {
-    Preparation,
+    Preparation1,
     Compute,
+    Preparation2,
     Converge,
+    Preparation3,
     Render,
 }
 
@@ -16,9 +18,11 @@ impl Plugin for SchedulePlugin {
         app.configure_sets(
             Update,
             (
-                SimulationCycle::Preparation,
+                SimulationCycle::Preparation1,
                 SimulationCycle::Compute,
+                SimulationCycle::Preparation2,
                 SimulationCycle::Converge,
+                SimulationCycle::Preparation3,
                 SimulationCycle::Render,
             )
                 .chain(),
@@ -28,7 +32,7 @@ impl Plugin for SchedulePlugin {
             (
                 SimulationCycle::Compute,
                 SimulationCycle::Converge,
-                // SimulationCycle::Render,
+                SimulationCycle::Render,
             )
                 .chain()
                 .run_if(in_state(SimulationPlayState::Running)),

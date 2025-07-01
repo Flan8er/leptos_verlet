@@ -3,7 +3,7 @@ resolver = "3"
 members = ["example", "leptos_verlet"]
 
 [workspace.package]
-version = "1.2.1"
+version = "1.2.2"
 edition = "2024"
 rust-version = "1.85.0"
 keywords = ["leptos", "bevy", "verlet", "simulation", "canvas"]

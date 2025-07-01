@@ -2,8 +2,7 @@ use bevy::prelude::*;
 
 use crate::{
     core::{
-        container_bounds::SimulationBounds,
-        parameters::{HALF_CAMERA_HEIGHT, POINT_SIZE, Point, STICK_SIZE},
+        parameters::{Point, SimulationSettings},
         spawner::{SpawnNode, spawner},
     },
     prelude::{MaterialType, MeshType},
@@ -19,14 +18,14 @@ pub fn spawn_cloth(
     point_material: MaterialType,
     stick_material: MaterialType,
     materials: &mut ResMut<Assets<StandardMaterial>>,
-    bounds: &Res<SimulationBounds>,
+    sim_settings: &Res<SimulationSettings>, // bounds: &Res<SimulationBounds>,
 ) {
     let point_mesh = MeshType::Sphere;
     let stick_mesh = MeshType::Cuboid;
 
     // simulation dimensions
-    let window_width = bounds.width;
-    let window_height = *HALF_CAMERA_HEIGHT * 2.0;
+    let window_width = sim_settings.simulation_bounds.x.1;
+    let window_height = sim_settings.simulation_bounds.y.1;
 
     // how many points in each direction
     let cols = (window_width / GRID_GAP).floor() as usize;
@@ -77,10 +76,14 @@ pub fn spawn_cloth(
                 connection: Some(neighbors.iter().map(|&j| positions[j]).collect()),
                 point_material: point_material.clone(),
                 point_mesh: point_mesh.clone(),
-                point_size: POINT_SIZE,
+                point_size: sim_settings.default_geometry_point_size,
                 connection_mesh: Some(vec![stick_mesh.clone(); neighbors.len()]),
                 connection_material: Some(vec![stick_material.clone(); neighbors.len()]),
-                connection_size: Some(vec![STICK_SIZE; neighbors.len()]),
+                connection_size: Some(vec![
+                    sim_settings.default_geometry_stick_size;
+                    neighbors.len()
+                ]),
+                connection_scale: Some(vec![Vec3::ONE; neighbors.len()]),
                 ..default()
             }
         })

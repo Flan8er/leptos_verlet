@@ -2,6 +2,8 @@ use leptos::prelude::*;
 use leptos_icons::Icon;
 use leptos_verlet::prelude::*;
 
+use crate::components::id_card::SpawnIdCard;
+
 #[component]
 pub fn ElementPane(active_modifier: RwSignal<ModificationTarget>) -> impl IntoView {
     let target_sender = expect_context::<ModificationTargetSender>();
@@ -99,6 +101,7 @@ pub fn ElementPane(active_modifier: RwSignal<ModificationTarget>) -> impl IntoVi
                 <ElementPaneItem icon=icondata::CgMenuGridO on_click=spawn_cloth selected_item=active_modifier this_item=Some(ModificationTarget::SpawnCloth)/>
                 <LeptosSpawner active_modifier/>
                 <ElementPaneItem icon=icondata::LuImport on_click=set_spawn_monkey selected_item=active_modifier this_item=None/>
+                <SpawnIdCard active_modifier/>
             </div>
 
             <div class="flex gap-4">
@@ -112,7 +115,7 @@ pub fn ElementPane(active_modifier: RwSignal<ModificationTarget>) -> impl IntoVi
 }
 
 #[component]
-fn ElementPaneItem<F>(
+pub fn ElementPaneItem<F>(
     icon: icondata::Icon,
     on_click: F,
     selected_item: RwSignal<ModificationTarget>,
@@ -172,7 +175,7 @@ fn LeptosSpawner(active_modifier: RwSignal<ModificationTarget>) -> impl IntoView
         ..default()
     };
     let bottom_right_node = SpawnNode {
-        point: Point::new(bottom_right, bottom_right + 0.5, false),
+        point: Point::new(bottom_right, bottom_right, false),
         connection: Some(vec![bottom_left, top_right, top_left]),
         point_material: point_material.clone(),
         connection_material: Some(vec![
