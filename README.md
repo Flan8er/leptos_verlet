@@ -65,7 +65,7 @@ SpawnNode {
 
 The SpawnNode type also takes in an extra argument: "attachment". This is an optional String where the value is the same model_name used in the model_loader function ("monkey.glb" in the above code). This essentially tells the mesh to follow whatever point it is attached to.
 
-![Screenshot 2025-06-26 at 1 29 25 PM](https://github.com/user-attachments/assets/bbfeb4fc-a994-4049-829a-996a6a78fab5)
+<img width="1765" alt="Screenshot 2025-07-01 at 8 50 10 AM" src="https://github.com/user-attachments/assets/fd9a9d9a-b996-4fa9-8160-b718941d796d" />
 
 ## Custom Shapes
 
