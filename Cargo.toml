@@ -3,7 +3,7 @@ resolver = "3"
 members = ["example", "leptos_verlet"]
 
 [workspace.package]
-version = "1.2.2"
+version = "1.2.3"
 edition = "2024"
 rust-version = "1.85.0"
 keywords = ["leptos", "bevy", "verlet", "simulation", "canvas"]
@@ -15,7 +15,7 @@ leptos_meta = { version = "0.7" }
 leptos_router = { version = "0.7" }
 
 getrandom = { version = "0.3", features = ["wasm_js"] }
-bevy = { version = "0.15" }
+bevy = { version = "0.15", features = ["jpeg"] }
 leptos-bevy-canvas = "0.2.0"
 
 leptos_icons = { version = "0.5" }
