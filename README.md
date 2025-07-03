@@ -200,16 +200,6 @@ let spawn_custom = {
 
 ## Future Changes
 
-- "Grab" interaction - interact with the model by grabbing it with the cursor
-- Define the constraints of the simulation on initialization
-  - Gravity
-  - Air resistance
-  - Simulation bounds
-  - Camera location / orientation
-  - Rendering optimization
-  - Converge steps
-  - Lighting
-  - ... General bevy settings within reason
 - Ideal gas law: soft bodies with constant (relatively) volumes
 - Migration to Leptos 0.8 and Bevy 0.16
 

@@ -35,8 +35,6 @@ pub struct SimulationSettings {
     pub default_geometry_stick_size: f32,
     /// The distance from the mouse any modification request will disperse to nearby simulation bodies.
     pub interaction_radius: f32,
-    pub camera_fov: f32,
-    pub camera_position: Vec3,
     /// Percent of energy kept after each contact with a collision surface.
     pub coeff_restitution: f32,
     /// Percent of energy kept after each contact with the floor.
@@ -58,6 +56,13 @@ pub struct SimulationSettings {
     ///
     /// How aggressively to shave off the discrete acceleration spikes.
     pub jerk_damping: f32,
+    pub camera_fov: f32,
+    pub camera_position: Vec3,
+    pub camera_orientation: Quat,
+    pub light_position: Vec3,
+    pub light_orientation: Quat,
+    pub light_luminosity: f32,
+    pub ambient_light: f32,
 }
 impl Default for SimulationSettings {
     fn default() -> Self {
@@ -65,6 +70,7 @@ impl Default for SimulationSettings {
         let camera_distance = CAMERA_DISTANCE;
         let half_camera_height = *HALF_CAMERA_HEIGHT;
         let camera_position = Vec3::new(0.0, half_camera_height, camera_distance);
+        let light_position = Vec3::new(10., 10., 10.);
 
         Self {
             converge_iterations: 10,
@@ -73,17 +79,26 @@ impl Default for SimulationSettings {
             default_geometry_point_size: 0.025,
             default_geometry_stick_size: 0.01,
             interaction_radius: 0.03,
-            camera_fov,
-            camera_position,
             coeff_restitution: 0.95,
             friction_restituation: 0.95,
             gravity: 9.8,
             air_resistance: 0.995,
             simulation_bounds: SimulationBounds::new(true, true, true),
             jerk_damping: 0.4,
+            camera_fov,
+            camera_position,
+            camera_orientation: Quat::IDENTITY,
+            light_position,
+            light_orientation: Quat::from_rotation_arc(
+                -Vec3::Z,
+                (Vec3::ZERO - light_position).normalize(),
+            ),
+            light_luminosity: 10_000.0,
+            ambient_light: 80.,
         }
     }
 }
+
 #[derive(Copy, Clone, Debug)]
 /// The bound value is calculated as an event based on the container size.
 /// The y-bounds has the floor set to y=0.

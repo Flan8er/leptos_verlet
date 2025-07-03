@@ -1,4 +1,4 @@
-use bevy::prelude::*;
+use bevy::{math::VectorSpace, prelude::*};
 
 use crate::core::{container_bounds::window_listener, parameters::SimulationSettings};
 
@@ -11,36 +11,35 @@ impl Plugin for StartupPlugin {
 }
 
 fn setup_ui(mut commands: Commands, sim_settings: Res<SimulationSettings>) {
-    let camera_position = sim_settings.camera_position;
     commands.spawn((
         Camera3d::default(),
         Projection::Perspective(PerspectiveProjection {
             fov: sim_settings.camera_fov,
             ..default()
         }),
-        Transform::from_xyz(camera_position.x, camera_position.y, camera_position.z),
+        Transform {
+            translation: sim_settings.camera_position,
+            rotation: sim_settings.camera_orientation,
+            ..default()
+        },
     ));
 
     commands.spawn((
         DirectionalLight {
             shadows_enabled: true,
-            illuminance: 10_000.0, // sunlight intensity in lux
+            illuminance: sim_settings.light_luminosity,
             color: Color::WHITE,
             ..default()
         },
         Transform {
-            translation: Vec3::new(7.5, 7., 5.), // position is arbitrary for directional light
-            rotation: Quat::from_rotation_arc(
-                Vec3::NEG_Z, // default direction it points toward
-                // Vec3::new(-1.0, -1.0, -1.0).normalize(), // sun direction
-                Vec3::new(-7.5, -7., -5.).normalize(),
-            ),
+            translation: sim_settings.light_position,
+            rotation: sim_settings.light_orientation,
             ..default()
         },
     ));
 
-    // commands.insert_resource(AmbientLight {
-    //     color: Color::WHITE,
-    //     brightness: 500.,
-    // });
+    commands.insert_resource(AmbientLight {
+        color: Color::WHITE,
+        brightness: sim_settings.ambient_light,
+    });
 }

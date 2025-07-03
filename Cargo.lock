@@ -3533,7 +3533,7 @@ dependencies = [
 
 [[package]]
 name = "leptos_verlet"
-version = "1.2.3"
+version = "1.2.4"
 dependencies = [
  "bevy",
  "getrandom 0.3.3",
