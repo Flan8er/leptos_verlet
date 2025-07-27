@@ -1,4 +1,4 @@
-use bevy::{math::VectorSpace, prelude::*};
+use bevy::prelude::*;
 
 use crate::core::{container_bounds::window_listener, parameters::SimulationSettings};
 
@@ -41,5 +41,6 @@ fn setup_ui(mut commands: Commands, sim_settings: Res<SimulationSettings>) {
     commands.insert_resource(AmbientLight {
         color: Color::WHITE,
         brightness: sim_settings.ambient_light,
+        ..default()
     });
 }

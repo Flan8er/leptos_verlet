@@ -1,4 +1,4 @@
-use bevy::{prelude::*, utils::HashSet};
+use bevy::{platform::collections::HashSet, prelude::*};
 use rand::{seq::SliceRandom, thread_rng};
 
 use crate::{

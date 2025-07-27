@@ -201,10 +201,11 @@ let spawn_custom = {
 ## Future Changes
 
 - Ideal gas law: soft bodies with constant (relatively) volumes
-- Migration to Leptos 0.8 and Bevy 0.16
 
 ## Compatibility
 
 | Crate version | Compatible Leptos version | Compatible Bevy version |
 | ------------- | ------------------------- | ----------------------- |
 | 1.0           | 0.7                       | 0.15                    |
+| ------------- | ------------------------- | ----------------------- |
+| 2.0           | 0.8                       | 0.16                    |

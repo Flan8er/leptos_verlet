@@ -75,7 +75,7 @@ pub fn spawn_stick(
     modification_radius: f32,
 ) {
     // Ideally there is only one line at any point
-    let (_, mut line) = match line_query.get_single_mut() {
+    let (_, mut line) = match line_query.single_mut() {
         Ok(query_item) => query_item,
         Err(_) => {
             return;

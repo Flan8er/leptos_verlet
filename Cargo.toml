@@ -3,24 +3,24 @@ resolver = "3"
 members = ["example", "leptos_verlet"]
 
 [workspace.package]
-version = "1.2.4"
+version = "2.0.0"
 edition = "2024"
 rust-version = "1.85.0"
 keywords = ["leptos", "bevy", "verlet", "simulation", "canvas"]
 
 [workspace.dependencies]
 console_error_panic_hook = "0.1.7"
-leptos = { version = "0.7", features = ["csr"] }
-leptos_meta = { version = "0.7" }
-leptos_router = { version = "0.7" }
+leptos = { version = "0.8", features = ["csr"] }
+leptos_meta = { version = "0.8" }
+leptos_router = { version = "0.8" }
 
 getrandom = { version = "0.3", features = ["wasm_js"] }
-bevy = { version = "0.15", features = ["jpeg"] }
-leptos-bevy-canvas = "0.2.0"
+bevy = { version = "0.16", features = ["jpeg"] }
+leptos-bevy-canvas = "0.3.0"
 
-leptos_icons = { version = "0.5" }
+leptos_icons = { version = "0.7" }
 icondata = { version = "0.5" } # https://carloskiki.github.io/icondata/
-leptos-use = { version = "0.15.7", features = [
+leptos-use = { version = "0.16", features = [
     "use_window_size",
     "use_draggable",
 ] }

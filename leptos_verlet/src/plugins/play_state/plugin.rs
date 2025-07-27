@@ -47,15 +47,15 @@ fn handle_play_state_request(
             }
             SimulationPlayStateRequest::Reset => {
                 for entity in stick_query.iter() {
-                    commands.entity(entity).despawn_recursive();
+                    commands.entity(entity).despawn();
                 }
 
                 for entity in point_query.iter() {
-                    commands.entity(entity).despawn_recursive();
+                    commands.entity(entity).despawn();
                 }
 
                 for entity in mesh_query.iter() {
-                    commands.entity(entity).despawn_recursive();
+                    commands.entity(entity).despawn();
                 }
 
                 next_state.set(SimulationPlayState::Running)

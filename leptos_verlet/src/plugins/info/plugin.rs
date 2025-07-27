@@ -51,9 +51,9 @@ fn send_leptos_update(
     target_query: Query<&Point, With<ActiveInfoTarget>>,
     mut writer: EventWriter<PointInfo>,
 ) {
-    match target_query.get_single() {
+    match target_query.single() {
         Ok(target_point) => {
-            let _ = writer.send(PointInfo::new(target_point));
+            let _ = writer.write(PointInfo::new(target_point));
         }
         Err(_) => return,
     }
@@ -64,7 +64,7 @@ fn receive_leptos_update(
     mut target_query: Query<&mut Point, With<ActiveInfoTarget>>,
 ) {
     for event in reader.read() {
-        match target_query.get_single_mut() {
+        match target_query.single_mut() {
             Ok(mut target_point) => {
                 target_point.position = event.position;
                 target_point.prev_position = target_point.position - event.velocity;

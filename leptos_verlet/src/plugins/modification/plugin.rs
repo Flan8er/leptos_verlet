@@ -136,7 +136,7 @@ pub fn handle_modification_event(
     for event in event_reader.read() {
         match event {
             ModifyEventType::Left(relative_pos) => {
-                let (camera, camera_transform) = match camera.get_single() {
+                let (camera, camera_transform) = match camera.single() {
                     Ok(queried_entity) => queried_entity,
                     Err(_) => continue,
                 };
@@ -237,7 +237,7 @@ pub fn handle_modification_event(
             ModifyEventType::Right(_relative_pos) => {}
             ModifyEventType::Middle(_relative_pos) => {}
             ModifyEventType::Move(relative_pos) => {
-                let (camera, camera_transform) = match camera.get_single() {
+                let (camera, camera_transform) = match camera.single() {
                     Ok(queried_entity) => queried_entity,
                     Err(_) => continue,
                 };
