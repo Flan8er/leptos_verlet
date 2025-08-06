@@ -124,7 +124,7 @@ pub fn SpawnIdCard(active_modifier: RwSignal<ModificationTarget>) -> impl IntoVi
             vec![rope_mid, top_center],
             false,
             0.1,
-            Some(String::from("monkey.glb")),
+            None,
         ),
         make_badge(
             top_center,

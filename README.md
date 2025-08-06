@@ -8,6 +8,8 @@ An engine that allows the addition of interactive verlet simulations into any le
 - Spawned objects are interactive through container bounds allowing for a uniquely interactive component.
 - A host of prebuilt objects using an agnostic "builder" layer that allows the developer to define and spawn custom objects into the simulation.
 
+Check out my other projects [here](https://caseyvaughn.dev)!
+
 ![Cloth](https://github.com/user-attachments/assets/f89de049-1c1f-402b-84d5-e8dea601a3db)
 ![Pendulum](https://github.com/user-attachments/assets/ed8f5c25-766e-41b0-a849-c2462c62f0ad)
 ![Rope](https://github.com/user-attachments/assets/8b6b1229-d510-4c40-89f6-fcb07aa85ea5)
@@ -49,7 +51,7 @@ pub fn App() -> impl IntoView {
 
 ## Custom Meshes
 
-In the latest ^1.2 update, a new function is exposed to allow custom meshes to be imported and attached to a simulation Point. The mesh will track, follow, and reorient relative to whatever Point it's attached to.
+In the ^1.2 update, a new function is exposed to allow custom meshes to be imported and attached to a simulation Point. The mesh will track, follow, and reorient relative to whatever Point it's attached to.
 
 ```rust
 // Imports and spawns the mesh into the simulation
@@ -204,7 +206,7 @@ let spawn_custom = {
 
 ## Compatibility
 
-| Crate version | Compatible Leptos version | Compatible Bevy version |
-| ------------- | ------------------------- | ----------------------- |
-| 1.0           | 0.7                       | 0.15                    |
-| 2.0           | 0.8                       | 0.16                    |
+| Crate version | Compatible Leptos version |
+| ------------- | ------------------------- |
+| 1.0           | 0.7                       |
+| 2.0           | 0.8                       |

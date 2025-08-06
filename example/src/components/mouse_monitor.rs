@@ -97,6 +97,14 @@ pub fn MouseMonitor(active_modifier: RwSignal<ModificationTarget>) -> impl IntoV
                     }
                 }
             }
+            on:mouseleave={
+                let release_action = release_action.clone();
+                move |ev| {
+                ev.prevent_default();
+                if let Some((x, y)) = target_mouse_position(&ev) {
+                    release_action(x, y);
+                }
+            }}
             on:mouseup=move |ev| {
                 ev.prevent_default();
                 if let Some((x, y)) = target_mouse_position(&ev) {

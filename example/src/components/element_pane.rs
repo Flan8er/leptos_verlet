@@ -7,15 +7,6 @@ use crate::components::id_card::SpawnIdCard;
 #[component]
 pub fn ElementPane(active_modifier: RwSignal<ModificationTarget>) -> impl IntoView {
     let target_sender = expect_context::<ModificationTargetSender>();
-    let spawn_monkey = RwSignal::new(false);
-
-    // Spawning a custom mesh when requested
-    Effect::new(move |_| {
-        if spawn_monkey.get() {
-            model_loader("/static/monkey.glb", "monkey.glb", 0);
-            spawn_monkey.set(false)
-        }
-    });
 
     let modification_point = {
         let sender = target_sender.clone();
@@ -88,7 +79,6 @@ pub fn ElementPane(active_modifier: RwSignal<ModificationTarget>) -> impl IntoVi
             active_modifier.set(ModificationTarget::PointInfo)
         }
     };
-    let set_spawn_monkey = move |_| spawn_monkey.update(|c| *c = !*c);
 
     view! {
         <div class="absolute top-2 left-[1/2] -translate-x-[1/2] p-1 border flex items-center justify-between rounded-md w-[calc(50dvw)] glass z-[20]">
@@ -100,7 +90,6 @@ pub fn ElementPane(active_modifier: RwSignal<ModificationTarget>) -> impl IntoVi
                 <ElementPaneItem icon=icondata::MdiTransitConnection on_click=spawn_rope selected_item=active_modifier this_item=Some(ModificationTarget::SpawnRope)/>
                 <ElementPaneItem icon=icondata::CgMenuGridO on_click=spawn_cloth selected_item=active_modifier this_item=Some(ModificationTarget::SpawnCloth)/>
                 <LeptosSpawner active_modifier/>
-                <ElementPaneItem icon=icondata::LuImport on_click=set_spawn_monkey selected_item=active_modifier this_item=None/>
                 <SpawnIdCard active_modifier/>
             </div>
 
